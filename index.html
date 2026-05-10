@@ -10,6 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <title>Vestiq — Armário Virtual com IA</title>
 <link rel="icon" type="image/png" href="icon-512.png">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
@@ -2047,6 +2048,10 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <!-- Aplicativo -->
         <div>
           <p style="font-size:12px;font-weight:700;color:var(--text-2);padding:14px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">Aplicativo</p>
+          <div class="toggle-row">
+            <span class="toggle-label">Google Drive</span>
+            <span id="gdrive-status-row" style="display:flex;align-items:center;gap:6px;"></span>
+          </div>
           <div class="toggle-row" style="border-bottom:none;">
             <span class="toggle-label">Forçar atualização</span>
             <button id="btn-force-update" onclick="forceUpdate()" title="Atualizar app"
@@ -2989,8 +2994,8 @@ function closeSlotModal(event) {
 
 
 // ===== AGENDA — STORAGE =====
-function saveAgendaToStorage()  { try { localStorage.setItem('vestiq_agenda',  JSON.stringify(agendaEntries)); } catch(e) { console.warn('[Vestiq] saveAgenda:', e); } }
-function saveViagensToStorage() { try { localStorage.setItem('vestiq_viagens', JSON.stringify(viagens)); }      catch(e) { console.warn('[Vestiq] saveViagens:', e); } }
+function saveAgendaToStorage()  { try { localStorage.setItem('vestiq_agenda',  JSON.stringify(agendaEntries)); } catch(e) { console.warn('[Vestiq] saveAgenda:', e); } GDRIVE.autoSave(); }
+function saveViagensToStorage() { try { localStorage.setItem('vestiq_viagens', JSON.stringify(viagens)); }      catch(e) { console.warn('[Vestiq] saveViagens:', e); } GDRIVE.autoSave(); }
 
 // ===== AGENDA — HELPERS =====
 function dateToStr(d) {
@@ -3740,10 +3745,15 @@ function toggleExportPanel(btn) {
 
 // ===== LOCALSTORAGE =====
 function savePiecesToStorage() {
-  try { localStorage.setItem('vestiq_pieces', JSON.stringify(pieces)); } catch(e) { console.warn('[Vestiq] savePieces:', e); }
+  try {
+    localStorage.setItem('vestiq_pieces', JSON.stringify(pieces));
+    localStorage.setItem('vestiq_last_modified', new Date().toISOString());
+  } catch(e) { console.warn('[Vestiq] savePieces:', e); }
+  GDRIVE.autoSave();
 }
 function saveLooksToStorage() {
   try { localStorage.setItem('vestiq_looks', JSON.stringify(looks)); } catch(e) { console.warn('[Vestiq] saveLooks:', e); }
+  GDRIVE.autoSave();
 }
 function saveUserToStorage() {
   try { localStorage.setItem('vestiq_user', JSON.stringify(currentUser)); } catch(e) { console.warn('[Vestiq] saveUser:', e); }
@@ -3816,6 +3826,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const ed = document.getElementById('perfil-email-display');
   if (ed) ed.textContent = currentUser.email;
   // headline editorial permanece; não sobrescrever
+  GDRIVE.init();
+  renderGDriveRow();
 });
 window.addEventListener('resize', () => { renderDashboardComposition(); });
 
@@ -3840,6 +3852,211 @@ window.addEventListener('resize', () => { renderDashboardComposition(); });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw-vestiq.js');
+}
+
+/* ─── GDRIVE ─── */
+const GDRIVE = {
+  CLIENT_ID: '218452083023-3cc5l1fbc2o82c85639snh96a5nsekvi.apps.googleusercontent.com',
+  SCOPE: 'https://www.googleapis.com/auth/drive.file email profile',
+  _tok: null, _tokExp: 0, _email: null, _fileId: null,
+  _tc: null, _timer: null, _dirty: false,
+  _pollInterval: null, _refreshTimer: null, _syncing: false, _loading: false,
+
+  _ok() { return !!this._tok && Date.now() < this._tokExp; },
+
+  async init() {
+    const t = localStorage.getItem('vestiq_gdrive_token');
+    const e = parseInt(localStorage.getItem('vestiq_gdrive_token_exp') || '0');
+    if (t && e > Date.now()) { this._tok = t; this._tokExp = e; }
+    this._fileId = localStorage.getItem('vestiq_gdrive_fileid') || null;
+    this._email  = localStorage.getItem('vestiq_gdrive_email')  || null;
+
+    const waitGIS = () => {
+      if (window.google?.accounts?.oauth2) {
+        this._initTC();
+        if (this._ok()) this._syncSilent();
+        else if (this._email) try { this._tc.requestAccessToken({ prompt:'' }); } catch {}
+      } else { setTimeout(waitGIS, 300); }
+    };
+    waitGIS();
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        if (this._ok()) this._syncSilent();
+        else if (this._email && this._tc) try { this._tc.requestAccessToken({ prompt:'' }); } catch {}
+      }
+    });
+    window.addEventListener('online', () => { if (this._ok()) this._syncSilent(); });
+    this._pollInterval = setInterval(() => { if (this._ok()) this._syncSilent(); }, 60000);
+  },
+
+  _initTC() {
+    if (this._tc || !window.google?.accounts?.oauth2) return;
+    this._tc = google.accounts.oauth2.initTokenClient({
+      client_id: this.CLIENT_ID, scope: this.SCOPE,
+      callback: async resp => {
+        if (resp.error) { console.error('GDRIVE:', resp.error); renderGDriveRow(); return; }
+        this._tok = resp.access_token;
+        this._tokExp = Date.now() + (resp.expires_in - 60) * 1000;
+        localStorage.setItem('vestiq_gdrive_token', this._tok);
+        localStorage.setItem('vestiq_gdrive_token_exp', String(this._tokExp));
+        clearTimeout(this._refreshTimer);
+        this._refreshTimer = setTimeout(() => {
+          if (this._tc) try { this._tc.requestAccessToken({ prompt:'' }); } catch {}
+        }, (resp.expires_in - 120) * 1000);
+        if (!this._email) {
+          try {
+            const u = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers:{ Authorization:`Bearer ${this._tok}` } }).then(r => r.json());
+            this._email = u.email;
+            localStorage.setItem('vestiq_gdrive_email', this._email);
+          } catch {}
+        }
+        renderGDriveRow();
+        await this._syncSilent();
+      }
+    });
+  },
+
+  signIn() {
+    if (!window.google) { showToast('Google não carregado — tente novamente', 'err'); return; }
+    this._initTC();
+    if (this._tc) this._tc.requestAccessToken();
+  },
+
+  async signOut() {
+    this._tok = null; this._tokExp = 0; this._email = null; this._fileId = null;
+    clearTimeout(this._refreshTimer); clearInterval(this._pollInterval);
+    ['vestiq_gdrive_token','vestiq_gdrive_token_exp','vestiq_gdrive_fileid','vestiq_gdrive_email'].forEach(k => localStorage.removeItem(k));
+    showToast('Google Drive desconectado');
+    renderGDriveRow();
+  },
+
+  async _getOrCreateFile() {
+    if (this._fileId) return this._fileId;
+    const r = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=name%3D'vestiq-data.json'%20and%20trashed%3Dfalse&orderBy=modifiedTime+desc&fields=files(id)",
+      { headers:{ Authorization:`Bearer ${this._tok}` } }
+    ).then(r => r.json());
+    if (r.error) { console.error('GDRIVE search:', r.error); return null; }
+    if (r.files?.length) {
+      this._fileId = r.files[0].id;
+    } else {
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify({ name:'vestiq-data.json', mimeType:'application/json' })], { type:'application/json' }));
+      form.append('file', new Blob([JSON.stringify(this._bundle(), null, 2)], { type:'application/json' }));
+      const c = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',
+        { method:'POST', headers:{ Authorization:`Bearer ${this._tok}` }, body:form }
+      ).then(r => r.json());
+      if (c.error) { console.error('GDRIVE create:', c.error); return null; }
+      this._fileId = c.id;
+      showToast('Arquivo criado no Google Drive ✓');
+    }
+    localStorage.setItem('vestiq_gdrive_fileid', this._fileId);
+    return this._fileId;
+  },
+
+  _bundle() {
+    return {
+      meta: { lastUpdated: new Date().toISOString(), schemaVersion: 2 },
+      pieces: pieces.map(function(pc) { var c = Object.assign({}, pc); delete c.img; return c; }),
+      looks: looks,
+      agendaEntries: agendaEntries,
+      viagens: viagens,
+      user: currentUser
+    };
+  },
+
+  autoSave() {
+    this._dirty = true;
+    if (!this._ok()) return;
+    clearTimeout(this._timer);
+    this._timer = setTimeout(() => this._doSave(), 1000);
+  },
+
+  async _doSave() {
+    if (!this._ok()) return;
+    const data = this._bundle();
+    if (!data.pieces.length && !data.looks.length) { console.warn('GDRIVE: bloqueado — dados vazios'); return; }
+    try {
+      const id = await this._getOrCreateFile();
+      if (!id) { showToast('Falha ao salvar no Drive', 'err'); return; }
+      const r = await fetch(
+        `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=media`,
+        { method:'PATCH', headers:{ Authorization:`Bearer ${this._tok}`, 'Content-Type':'application/json' }, body:JSON.stringify(data, null, 2) }
+      );
+      if (r.status === 401) { await this.signOut(); return; }
+      if (!r.ok) showToast(`Erro ${r.status} ao salvar no Drive`, 'err');
+      else this._dirty = false;
+    } catch(e) { console.warn('GDRIVE._doSave:', e); }
+  },
+
+  async _doLoad() {
+    if (!this._ok() || this._loading) return false;
+    this._loading = true;
+    try {
+      if (this._timer !== null) { clearTimeout(this._timer); this._timer = null; await this._doSave(); }
+      const id = await this._getOrCreateFile();
+      if (!id) return false;
+      const resp = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+        { headers:{ Authorization:`Bearer ${this._tok}` } }
+      );
+      if (resp.status === 401) { await this.signOut(); return false; }
+      if (!resp.ok) {
+        const msg = resp.status === 403 ? 'Drive: ative a Google Drive API no Cloud Console' : `Erro ${resp.status} Google Drive`;
+        showToast(msg, 'err'); return false;
+      }
+      const driveData = await resp.json();
+      const dt = new Date(driveData.meta?.lastUpdated || 0);
+      const lt = new Date(localStorage.getItem('vestiq_last_modified') || 0);
+      if (dt > lt) {
+        if (Array.isArray(driveData.pieces))        { pieces = driveData.pieces.map(pc => ({ ...pc, img: getFashionImg(pc.categoria, pc.cor) })); savePiecesToStorage(); }
+        if (Array.isArray(driveData.looks))         { looks = driveData.looks; saveLooksToStorage(); }
+        if (Array.isArray(driveData.agendaEntries)) { agendaEntries = driveData.agendaEntries; saveAgendaToStorage(); }
+        if (Array.isArray(driveData.viagens))       { viagens = driveData.viagens; saveViagensToStorage(); }
+        if (driveData.user)                         { Object.assign(currentUser, driveData.user); saveUserToStorage(); }
+        localStorage.setItem('vestiq_last_modified', dt.toISOString());
+        renderPiecesGrid(); renderLooksGrid();
+        renderDashboardLooks(); renderDashboardUsed(); renderDashboardComposition();
+        renderSuggestCards(); updateDashboardStats(); updateProfileBody();
+        showToast('Dados sincronizados do Drive ✓');
+        this._dirty = false;
+        return true;
+      }
+      if (this._dirty) {
+        const data = this._bundle();
+        if (data.pieces.length || data.looks.length) await this._doSave();
+      }
+      return false;
+    } catch(e) { console.warn('GDRIVE._doLoad:', e); } finally { this._loading = false; }
+    return false;
+  },
+
+  async _syncSilent() {
+    if (!this._ok() || this._syncing) return;
+    this._syncing = true;
+    try { await this._doLoad(); } finally { this._syncing = false; }
+  },
+
+  async syncNow() {
+    if (!this._ok()) { showToast('Reconecte o Google Drive primeiro', 'err'); return; }
+    showToast('Sincronizando...');
+    this._dirty = true;
+    await this._doLoad();
+  }
+};
+
+function renderGDriveRow() {
+  const el = document.getElementById('gdrive-status-row');
+  if (!el) return;
+  if (GDRIVE._email) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--text-soft)">' + GDRIVE._email + '</span>'
+      + '<button onclick="GDRIVE.syncNow()" title="Sincronizar agora" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer;color:var(--text-soft);">↻</button>'
+      + '<button onclick="GDRIVE.signOut()" style="background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;">Sair</button>';
+  } else {
+    el.innerHTML = '<button onclick="GDRIVE.signIn()" style="background:var(--sage);color:#fff;border:none;border-radius:10px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;">Conectar</button>';
+  }
 }
 </script>
 </body>
