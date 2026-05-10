@@ -3757,6 +3757,7 @@ function saveLooksToStorage() {
 }
 function saveUserToStorage() {
   try { localStorage.setItem('vestiq_user', JSON.stringify(currentUser)); } catch(e) { console.warn('[Vestiq] saveUser:', e); }
+  GDRIVE.autoSave();
 }
 function loadFromStorage() {
   try {
@@ -3968,6 +3969,7 @@ const GDRIVE = {
   },
 
   autoSave() {
+    if (this._loading) return;
     this._dirty = true;
     if (!this._ok()) return;
     clearTimeout(this._timer);
