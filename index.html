@@ -1604,7 +1604,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
             <div class="stat-lbl">Looks</div>
           </div>
           <div class="stat-mini" style="border-top:none;border-left:1px solid var(--border);padding:20px 16px;">
-            <div class="stat-num">R$3.4k</div>
+            <div id="stat-total-investido" class="stat-num">0</div>
             <div class="stat-lbl">Investido</div>
           </div>
           <div class="stat-mini" id="stat-cats-wrap" style="display:none;border-top:none;border-left:1px solid var(--border);padding:20px 16px;">
@@ -1617,8 +1617,8 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <div id="dash-ia-wrap" style="padding:12px 16px 6px;">
           <div class="smart-curation-card" onclick="navigate('sugestao')">
             <div class="curation-eyebrow">Curadoria Vestiq IA</div>
-            <h3>Encontramos 3 combinações com peças que você já tem.</h3>
-            <p>Looks montados considerando ocasião, estação e seu tipo de corpo.</p>
+            <h3 id="dash-ia-title">Adicione peças ao armário para receber sugestões de looks.</h3>
+            <p id="dash-ia-desc">Looks montados considerando ocasião, estação e seu tipo de corpo.</p>
             <button class="btn-ia" style="width:auto;padding:12px 22px;font-size:13.5px;">Ver sugestões</button>
           </div>
         </div>
@@ -3324,15 +3324,22 @@ function updateDashboardStats() {
     const d = new Date();
     dateEl.textContent = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
   }
+  const total = pieces.reduce(function(s, p) { return s + (p.preco || 0); }, 0);
+  const fmtInvest = total >= 1000 ? (total / 1000).toFixed(1).replace('.', ',') + 'k' : String(Math.round(total));
+  const elIATitle = document.getElementById('dash-ia-title');
+  if (elIATitle) {
+    elIATitle.textContent = pieces.length >= 3
+      ? 'Encontramos ' + pieces.length + ' peças no seu armário para montar looks.'
+      : 'Adicione peças ao armário para receber sugestões de looks.';
+  }
+  const elDI = document.getElementById('stat-total-investido');
+  if (elDI) elDI.textContent = fmtInvest;
   const elPP = document.getElementById('perfil-stat-pecas');
   const elPL = document.getElementById('perfil-stat-looks');
   const elPI = document.getElementById('perfil-stat-investido');
   if (elPP) elPP.textContent = pieces.length;
   if (elPL) elPL.textContent = looks.length;
-  if (elPI) {
-    const total = pieces.reduce(function(s, p) { return s + (p.preco || 0); }, 0);
-    elPI.textContent = total >= 1000 ? (total / 1000).toFixed(1).replace('.', ',') + 'k' : String(Math.round(total));
-  }
+  if (elPI) elPI.textContent = fmtInvest;
 }
 
 // ===== DASHBOARD COMPOSITION (desktop right panel) =====
