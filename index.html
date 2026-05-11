@@ -3246,7 +3246,8 @@ function renderPiecesGrid() {
   const grid = document.getElementById('pieces-grid');
   let filtered = pieces;
   if (activeCategory !== 'Todas') filtered = filtered.filter(p => p.categoria === activeCategory);
-  if (activeSeason !== 'Todas') filtered = filtered.filter(p => p.estacao === activeSeason);
+  if (activeSeason !== 'Todas') filtered = filtered.filter(p =>
+    (p.estacoes && p.estacoes.length) ? p.estacoes.includes(activeSeason) : p.estacao === activeSeason);
   if (pieceSearchQuery) filtered = filtered.filter(p => p.nome.toLowerCase().includes(pieceSearchQuery.toLowerCase()));
   if (!filtered.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:var(--muted);font-size:14px;">Nenhuma peça encontrada.</div>';
@@ -3296,7 +3297,8 @@ function openPiece(id) {
   document.getElementById('detalhe-ocasiao').textContent = p.ocasiao;
   document.getElementById('detalhe-loja').textContent = p.loja || 'Não informada';
   document.getElementById('detalhe-preco').textContent = p.preco ? 'R$ ' + p.preco.toFixed(2).replace('.', ',') : 'Não informado';
-  document.getElementById('detalhe-estacao').textContent = p.estacao || 'Todas as estações';
+  document.getElementById('detalhe-estacao').textContent =
+    (p.estacoes && p.estacoes.length) ? p.estacoes.join(', ') : (p.estacao || 'Todas as estações');
   document.getElementById('detalhe-materiais').textContent = (p.materiais && p.materiais.length) ? p.materiais.join(', ') : 'Não informado';
   // Fill "appears in looks" thumbnails
   const relatedLooks = looks.filter(l => l.pecas.includes(id));
