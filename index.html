@@ -1871,11 +1871,29 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
       <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;" id="category-filters">
         <button class="chip active" onclick="filterPieces('Todas',this)">Todas</button>
         <button class="chip" onclick="filterPieces('Tops',this)">Tops</button>
+        <button class="chip" onclick="filterPieces('Blusas',this)">Blusas</button>
+        <button class="chip" onclick="filterPieces('Camisas',this)">Camisas</button>
+        <button class="chip" onclick="filterPieces('Camisetas',this)">Camisetas</button>
+        <button class="chip" onclick="filterPieces('Croppeds',this)">Croppeds</button>
+        <button class="chip" onclick="filterPieces('Bodies',this)">Bodies</button>
         <button class="chip" onclick="filterPieces('Calças',this)">Calças</button>
+        <button class="chip" onclick="filterPieces('Jeans',this)">Jeans</button>
+        <button class="chip" onclick="filterPieces('Shorts',this)">Shorts</button>
+        <button class="chip" onclick="filterPieces('Saias',this)">Saias</button>
         <button class="chip" onclick="filterPieces('Vestidos',this)">Vestidos</button>
-        <button class="chip" onclick="filterPieces('Calçados',this)">Calçados</button>
-        <button class="chip" onclick="filterPieces('Acessórios',this)">Acessórios</button>
+        <button class="chip" onclick="filterPieces('Macacões',this)">Macacões</button>
+        <button class="chip" onclick="filterPieces('Conjuntos',this)">Conjuntos</button>
+        <button class="chip" onclick="filterPieces('Roupas de Festa',this)">Roupas de Festa</button>
         <button class="chip" onclick="filterPieces('Casacos',this)">Casacos</button>
+        <button class="chip" onclick="filterPieces('Jaquetas',this)">Jaquetas</button>
+        <button class="chip" onclick="filterPieces('Blazers',this)">Blazers</button>
+        <button class="chip" onclick="filterPieces('Calçados',this)">Calçados</button>
+        <button class="chip" onclick="filterPieces('Bolsas',this)">Bolsas</button>
+        <button class="chip" onclick="filterPieces('Acessórios',this)">Acessórios</button>
+        <button class="chip" onclick="filterPieces('Moda Praia',this)">Moda Praia</button>
+        <button class="chip" onclick="filterPieces('Moda Fitness',this)">Moda Fitness</button>
+        <button class="chip" onclick="filterPieces('Moda Íntima',this)">Moda Íntima</button>
+        <button class="chip" onclick="filterPieces('Pijamas',this)">Pijamas</button>
       </div>
     </div>
     <!-- Filtros de estação -->
@@ -1954,8 +1972,27 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <div class="input-group">
           <label>Categoria</label>
           <select id="ai-categoria">
-            <option>Tops</option><option>Calças</option><option>Vestidos</option>
-            <option>Calçados</option><option>Acessórios</option><option>Casacos</option>
+            <optgroup label="Partes de cima">
+              <option>Tops</option><option>Blusas</option><option>Camisas</option>
+              <option>Camisetas</option><option>Croppeds</option><option>Bodies</option>
+            </optgroup>
+            <optgroup label="Partes de baixo">
+              <option>Calças</option><option>Jeans</option><option>Shorts</option><option>Saias</option>
+            </optgroup>
+            <optgroup label="Peças inteiras">
+              <option>Vestidos</option><option>Macacões</option><option>Conjuntos</option>
+              <option>Roupas de Festa</option>
+            </optgroup>
+            <optgroup label="Sobreposição">
+              <option>Casacos</option><option>Jaquetas</option><option>Blazers</option>
+            </optgroup>
+            <optgroup label="Calçados &amp; Acessórios">
+              <option>Calçados</option><option>Bolsas</option><option>Acessórios</option>
+            </optgroup>
+            <optgroup label="Outros">
+              <option>Moda Praia</option><option>Moda Fitness</option>
+              <option>Moda Íntima</option><option>Pijamas</option>
+            </optgroup>
           </select>
         </div>
         <div class="input-group">
@@ -2623,7 +2660,16 @@ function getFashionImg(categoria, cor) {
       <rect x="54" y="136" width="14" height="166" rx="6" fill="${p.f3}" opacity="0.32"/>
       <rect x="54" y="136" width="192" height="20" rx="14" fill="${p.f1}" opacity="0.18"/>`,
   };
-  const shape = shapes[categoria] || shapes['Tops'];
+  const aliases = {
+    'Blusas':'Tops', 'Camisas':'Tops', 'Camisetas':'Tops', 'Croppeds':'Tops',
+    'Bodies':'Tops', 'Moda Fitness':'Tops', 'Moda Íntima':'Tops', 'Pijamas':'Tops',
+    'Jeans':'Calças', 'Shorts':'Calças',
+    'Saias':'Vestidos', 'Macacões':'Vestidos', 'Conjuntos':'Vestidos',
+    'Moda Praia':'Vestidos', 'Roupas de Festa':'Vestidos',
+    'Jaquetas':'Casacos', 'Blazers':'Casacos',
+    'Bolsas':'Acessórios',
+  };
+  const shape = shapes[aliases[categoria] || categoria] || shapes['Tops'];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400"><defs><linearGradient id="bg" x1="0" y1="0" x2="0.1" y2="1"><stop offset="0%" stop-color="${p.bg1}"/><stop offset="100%" stop-color="${p.bg2}"/></linearGradient></defs><rect width="300" height="400" fill="url(#bg)"/>${shape}</svg>`;
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
