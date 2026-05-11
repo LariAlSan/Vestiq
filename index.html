@@ -3720,7 +3720,7 @@ function editPerfil() {
 // ===== SAIR DA CONTA =====
 function sairDaConta() {
   if (!confirm('Sair da conta?')) return;
-  navigate('onboarding');
+  AUTH.logout();
 }
 
 // ===== DARK MODE =====
