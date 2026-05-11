@@ -2178,6 +2178,10 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
           <p style="font-size:11px;color:var(--text-2);font-weight:500;">Estação</p>
           <p id="detalhe-estacao" style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;"></p>
         </div>
+        <div style="background:var(--bg);border-radius:14px;padding:12px 14px;">
+          <p style="font-size:11px;color:var(--text-2);font-weight:500;">Data de aquisição</p>
+          <p id="detalhe-data-compra" style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;"></p>
+        </div>
         <div style="background:var(--bg);border-radius:14px;padding:12px 14px;grid-column:1/-1;">
           <p style="font-size:11px;color:var(--text-2);font-weight:500;">Material</p>
           <p id="detalhe-materiais" style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;"></p>
@@ -3299,6 +3303,8 @@ function openPiece(id) {
   document.getElementById('detalhe-preco').textContent = p.preco ? 'R$ ' + p.preco.toFixed(2).replace('.', ',') : 'Não informado';
   document.getElementById('detalhe-estacao').textContent =
     (p.estacoes && p.estacoes.length) ? p.estacoes.join(', ') : (p.estacao || 'Todas as estações');
+  document.getElementById('detalhe-data-compra').textContent =
+    p.dataCompra ? p.dataCompra.split('-').reverse().join('/') : 'Não informada';
   document.getElementById('detalhe-materiais').textContent = (p.materiais && p.materiais.length) ? p.materiais.join(', ') : 'Não informado';
   // Fill "appears in looks" thumbnails
   const relatedLooks = looks.filter(l => l.pecas.includes(id));
