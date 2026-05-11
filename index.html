@@ -1918,10 +1918,12 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
       </button>
       <h1>Nova peça no armário</h1>
     </div>
+    <input type="file" id="input-camera"  accept="image/*" capture="environment" style="display:none" onchange="processImage(this)">
+    <input type="file" id="input-galeria" accept="image/*"                       style="display:none" onchange="processImage(this)">
     <div id="add-step-1" style="padding:0 20px;display:flex;flex-direction:column;gap:14px;">
       <p style="font-size:13px;color:var(--text-soft);padding-top:4px;">Como você quer adicionar a peça?</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="background:rgba(255,255,255,0.8);border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;border:1px solid rgba(203,190,175,0.5);transition:all 0.2s;" onclick="simulateCapture()" onmouseover="this.style.borderColor='var(--plum)'" onmouseout="this.style.borderColor='rgba(203,190,175,0.5)'">
+        <div style="background:rgba(255,255,255,0.8);border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;border:1px solid rgba(203,190,175,0.5);transition:all 0.2s;" onclick="openCamera()" onmouseover="this.style.borderColor='var(--plum)'" onmouseout="this.style.borderColor='rgba(203,190,175,0.5)'">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;color:var(--plum);">
             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             <circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="1.5"/>
@@ -1929,7 +1931,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
           <p style="font-size:13px;font-weight:700;color:var(--text);">Fotografar peça</p>
           <p style="font-size:11px;color:var(--text-soft);margin-top:3px;">Usar câmera</p>
         </div>
-        <div style="background:rgba(255,255,255,0.8);border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;border:1px solid rgba(203,190,175,0.5);transition:all 0.2s;" onclick="simulateCapture()" onmouseover="this.style.borderColor='var(--plum)'" onmouseout="this.style.borderColor='rgba(203,190,175,0.5)'">
+        <div style="background:rgba(255,255,255,0.8);border-radius:18px;padding:22px 14px;text-align:center;cursor:pointer;border:1px solid rgba(203,190,175,0.5);transition:all 0.2s;" onclick="openGallery()" onmouseover="this.style.borderColor='var(--plum)'" onmouseout="this.style.borderColor='rgba(203,190,175,0.5)'">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;color:var(--plum);">
             <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
             <path d="M3 9l4-4 4 4 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -2687,6 +2689,7 @@ let viagens = [];
 let currentScreen = 'onboarding';
 let navHistory = [];
 let currentSlotId = null;
+let currentPieceImg = null;
 let currentLookSlots = { 0: null, 1: null, 2: null, 3: null };
 let currentDetailPieceId = null;
 let currentViagemId = null;
@@ -3114,35 +3117,50 @@ function openPiece(id) {
   navigate('detalhe');
 }
 
-// ===== ADD PIECE: SIMULATE AI =====
-function simulateCapture() {
-  const step1 = document.getElementById('add-step-1');
-  const step2 = document.getElementById('add-step-2');
-  step1.style.display = 'none';
-  step2.style.display = 'flex';
+// ===== ADD PIECE: CAMERA / GALLERY =====
+function openCamera()  { document.getElementById('input-camera').click(); }
+function openGallery() { document.getElementById('input-galeria').click(); }
 
-  const analyzing = document.getElementById('ai-analyzing');
-  const resultFields = document.getElementById('ai-result-fields');
-  analyzing.style.display = 'flex';
-  resultFields.style.display = 'none';
+function processImage(inputEl) {
+  const file = inputEl.files[0];
+  if (!file) return;
+  inputEl.value = '';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxW = 400, maxH = 533;
+      let w = img.width, h = img.height;
+      if (w / h > maxW / maxH) { w = maxW; h = Math.round(img.height * maxW / img.width); }
+      else { h = maxH; w = Math.round(img.width * maxH / img.height); }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPieceImg = canvas.toDataURL('image/jpeg', 0.75);
 
-  setTimeout(() => {
-    analyzing.style.display = 'none';
-    resultFields.style.display = 'flex';
-    animateField('ai-nome', 'Blusa de Seda Off-White');
-    animateField('ai-cor', 'Off-White');
-    const sel = document.getElementById('ai-categoria');
-    setTimeout(() => {
-      sel.value = 'Tops';
-      sel.style.borderColor = 'var(--purple)';
-      setTimeout(() => sel.style.borderColor = '', 1000);
-    }, 300);
-    const estCheck = document.getElementById('est-primavera');
-    setTimeout(() => {
-      estCheck.checked = true;
-      estCheck.closest('.estacao-check').querySelector('span').style.animation = 'pulse 0.4s ease';
-    }, 500);
-  }, 1500);
+      document.getElementById('add-step-1').style.display = 'none';
+      document.getElementById('add-step-2').style.display = 'flex';
+      document.getElementById('add-preview-img').src = currentPieceImg;
+
+      const analyzing = document.getElementById('ai-analyzing');
+      const resultFields = document.getElementById('ai-result-fields');
+      analyzing.style.display = 'flex';
+      resultFields.style.display = 'none';
+
+      setTimeout(function() {
+        analyzing.style.display = 'none';
+        resultFields.style.display = 'flex';
+        document.getElementById('ai-nome').value = '';
+        document.getElementById('ai-cor').value = '';
+        document.getElementById('ai-categoria').value = 'Tops';
+        ['est-primavera','est-verao','est-outono','est-inverno'].forEach(function(id) {
+          const el = document.getElementById(id); if (el) el.checked = false;
+        });
+      }, 1200);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function animateField(id, value) {
@@ -3626,17 +3644,19 @@ function savePiece() {
   const estacao = estacoes.length > 0 ? estacoes[0] : 'Todas';
   const encoded = encodeURIComponent(nome.slice(0,14).replace(/\s+/g, '+'));
 
+  const img = currentPieceImg || getFashionImg(categoria, cor);
+  currentPieceImg = null;
+
   const wasEditing = editingPieceId !== null;
   if (wasEditing) {
     const idx = pieces.findIndex(p => p.id === editingPieceId);
-    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, estacao, img: getFashionImg(categoria, cor) };
+    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, estacao, img };
     editingPieceId = null;
   } else {
     const newId = pieces.length > 0 ? Math.max(...pieces.map(p => p.id)) + 1 : 0;
     pieces.push({ id: newId, nome, categoria, cor, ocasiao: 'Casual', loja: '', preco: 0,
       estacao, estacoes: estacao !== 'Todas' ? [estacao] : [],
-      adicionadoEm: new Date().toISOString(),
-      img: getFashionImg(categoria, cor) });
+      adicionadoEm: new Date().toISOString(), img });
   }
   savePiecesToStorage();
   navigate('armario');
@@ -4020,7 +4040,7 @@ function loadFromStorage() {
     if (sp) {
       pieces = JSON.parse(sp);
       pieces.forEach(function(pc) {
-        pc.img = getFashionImg(pc.categoria, pc.cor);
+        if (!pc.img || pc.img.startsWith('data:image/svg+xml')) pc.img = getFashionImg(pc.categoria, pc.cor);
         // D1: migrar estacao string → estacoes array
         if (!pc.estacoes) pc.estacoes = pc.estacao ? [pc.estacao] : [];
         // D2: migrar preco string → número
@@ -4060,6 +4080,7 @@ function loadFromStorage() {
 // ===== RESET ADD SCREEN =====
 function resetAddScreen() {
   editingPieceId = null;
+  currentPieceImg = null;
   document.getElementById('add-step-1').style.display = 'flex';
   document.getElementById('add-step-2').style.display = 'none';
   ['est-primavera','est-verao','est-outono','est-inverno'].forEach(id => {
