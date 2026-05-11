@@ -33,7 +33,7 @@ body {
   overflow-x: hidden;
 }
 
-@media (max-width: 380px) {
+@media (max-width: 420px) {
   .body-type-grid { grid-template-columns: repeat(3, 1fr) !important; }
   .measure-row    { grid-template-columns: 1fr !important; }
   .estacao-checks { display: grid !important; grid-template-columns: 1fr 1fr !important; }
@@ -592,6 +592,7 @@ body {
 /* ===== SCROLLBAR ===== */
 .screen::-webkit-scrollbar { width: 4px; }
 .screen::-webkit-scrollbar-thumb { background: #F9EDF0; border-radius: 2px; }
+[data-theme="dark"] .screen::-webkit-scrollbar-thumb { background: #4A3830; }
 
 /* ===== TAB BAR (flutuante premium) ===== */
 #tabbar {
@@ -1469,6 +1470,9 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 [data-theme=dark] #auth-screen .auth-tab.active{background:#261E1A}
 [data-theme=dark] #auth-screen .auth-btn-google{background:#1c1410;color:#F5EDE8;border-color:#4A3830}
 [data-theme=dark] #auth-screen .auth-check-row label{color:#F5EDE8}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
 </style>
 <script>try{if(localStorage.getItem('vestiq_dark')==='1')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
 </head>
@@ -2021,18 +2025,18 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         </div>
         <div class="input-group">
           <label>Data de compra</label>
-          <input type="date" value="2025-04-15">
+          <input type="date" id="ai-data-compra">
         </div>
         <div class="input-group">
           <label>Ocasião</label>
-          <select>
+          <select id="ai-ocasiao">
             <option>Casual</option><option>Trabalho</option><option>Festa</option>
             <option>Esporte</option><option>Praia</option>
           </select>
         </div>
         <div class="input-group">
           <label>Notas</label>
-          <textarea placeholder="Observações sobre a peça..."></textarea>
+          <textarea id="ai-notas" placeholder="Observações sobre a peça..."></textarea>
         </div>
         <button class="btn-primary" style="margin-top:8px;margin-bottom:24px;" onclick="savePiece()">Salvar peça</button>
       </div>
@@ -2125,7 +2129,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
       <h1>Montar look</h1>
-      <button class="btn-ghost" style="margin-left:auto;" onclick="navigate('looks')">Salvar</button>
+      <button class="btn-ghost" style="margin-left:auto;" onclick="saveLook()">Salvar</button>
     </div>
     <div style="padding:0 20px 14px;">
       <input id="look-nome-input" type="text" placeholder="Nome do look (ex: Look Trabalho)" style="border:1px solid var(--border);border-radius:16px;padding:13px 15px;font-size:14px;width:100%;background:rgba(255,255,255,0.8);font-family:inherit;outline:none;">
@@ -2158,11 +2162,11 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
       <div class="criar-look-selects" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
         <div class="input-group">
           <label>Ocasião</label>
-          <select><option>Casual</option><option>Trabalho</option><option>Festa</option><option>Esporte</option></select>
+          <select id="create-look-ocasiao"><option>Casual</option><option>Trabalho</option><option>Festa</option><option>Esporte</option></select>
         </div>
         <div class="input-group">
           <label>Estação</label>
-          <select>
+          <select id="create-look-estacao">
             <option value="">Todas</option>
             <option>Primavera</option>
             <option>Verão</option>
@@ -2881,16 +2885,18 @@ function renderDashboardLooks() {
 function renderDashboardUsed() {
   const el = document.getElementById('dash-used-scroll');
   if (!el) return;
-  const featuredIds = [0, 2, 4, 6];
-  const usages = [12, 10, 8, 7];
-  const featured = featuredIds.map((id, i) => ({ piece: pieces.find(p => p.id === id), uso: usages[i] })).filter(x => x.piece);
-  if (!featured.length) { el.innerHTML = '<p style="color:var(--text-soft);font-size:14px;padding:8px 0;">Adicione peças ao seu armário.</p>'; return; }
-  el.innerHTML = featured.map(({ piece, uso }) =>
-    `<div style="flex-shrink:0;width:148px;cursor:pointer;" onclick="openPiece(${piece.id})">
+  if (!pieces.length) { el.innerHTML = '<p style="color:var(--text-soft);font-size:14px;padding:8px 0;">Adicione peças ao seu armário.</p>'; return; }
+  const counts = {};
+  looks.forEach(function(l) { l.pecas.forEach(function(pid) { counts[pid] = (counts[pid] || 0) + 1; }); });
+  const sorted = pieces.slice().sort(function(a, b) { return (counts[b.id] || 0) - (counts[a.id] || 0); }).slice(0, 4);
+  el.innerHTML = sorted.map(function(piece) {
+    const uso = counts[piece.id] || 0;
+    return `<div style="flex-shrink:0;width:148px;cursor:pointer;" onclick="openPiece(${piece.id})">
       <img src="${piece.img}" style="width:100%;border-radius:16px;aspect-ratio:3/4;object-fit:cover;box-shadow:0 4px 18px rgba(47,47,51,0.09);">
       <p style="font-size:13px;font-weight:700;color:var(--text);margin-top:10px;letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${piece.nome}</p>
-      <p style="font-size:11.5px;color:var(--text-soft);margin-top:3px;">${uso} usos</p>
-    </div>`).join('');
+      <p style="font-size:11.5px;color:var(--text-soft);margin-top:3px;">${uso > 0 ? uso + (uso === 1 ? ' look' : ' looks') : 'Nunca usada'}</p>
+    </div>`;
+  }).join('');
 }
 
 const ALL_SUGGESTIONS = [
@@ -2909,9 +2915,10 @@ function nextSuggestion(cardIdx) {
 
 function saveSuggestion(cardIdx) {
   const s = ALL_SUGGESTIONS[suggestionIndices[cardIdx]];
+  let pecaIds = s.pecas.filter(id => pieces.some(p => p.id === id));
+  if (!pecaIds.length) pecaIds = pieces.slice(0, 4).map(p => p.id);
   const newId = looks.length > 0 ? Math.max(...looks.map(l => l.id)) + 1 : 0;
-  const validPecas = s.pecas.filter(id => pieces.some(p => p.id === id));
-  looks.push({ id: newId, nome: s.titulo, ocasiao: s.ocasiao, estacao: 'Todas', pecas: validPecas });
+  looks.push({ id: newId, nome: s.titulo, ocasiao: s.ocasiao, estacao: 'Todas', pecas: pecaIds });
   saveLooksToStorage();
   navigate('looks');
 }
@@ -2919,18 +2926,30 @@ function saveSuggestion(cardIdx) {
 function renderSuggestCards() {
   const el = document.getElementById('suggest-cards-container');
   if (!el) return;
+  if (!pieces.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px 20px 24px;">
+      <div style="font-size:36px;color:var(--plum);animation:ia-pulse 3s ease-in-out infinite;display:inline-block;margin-bottom:14px;">✦</div>
+      <p style="font-size:15px;color:var(--text-soft);line-height:1.6;margin-bottom:20px;">Adicione peças ao seu armário<br>para receber sugestões personalizadas.</p>
+      <button class="btn-primary" style="width:auto;padding:10px 24px;" onclick="navigate('adicionar')">Adicionar peças</button>
+    </div>`;
+    return;
+  }
   el.innerHTML = suggestionIndices.map((si, cardIdx) => {
     const s = ALL_SUGGESTIONS[si];
-    const imgs = s.pecas.slice(0,4).map(id => {
+    let pecaIds = s.pecas.filter(id => pieces.some(p => p.id === id));
+    if (!pecaIds.length) pecaIds = pieces.slice(0, 4).map(p => p.id);
+    const imgs = pecaIds.slice(0,4).map(id => {
       const p = pieces.find(x => x.id === id);
       return p ? `<img src="${p.img}" alt="${p.nome}">` : '';
     }).join('');
+    const cardPecas = pecaIds.map(id => pieces.find(p => p.id === id)).filter(Boolean);
+    const desc = cardPecas.map(p => p.nome).join(' + ') || s.desc;
     return `
       <div class="suggest-card">
         <div class="suggest-card-grid">${imgs}</div>
         <div class="suggest-card-footer">
           <h3>${s.titulo}</h3>
-          <p>${s.desc}</p>
+          <p>${desc}</p>
           <div style="margin-top:8px;"><span class="chip" style="font-size:11px;padding:3px 10px;">${s.ocasiao}</span></div>
           <div class="suggest-actions">
             <button class="btn-primary" onclick="saveSuggestion(${cardIdx})">Salvar look</button>
@@ -3106,8 +3125,8 @@ function openPiece(id) {
   document.getElementById('detalhe-cat').textContent = p.categoria;
   document.getElementById('detalhe-cor').textContent = p.cor;
   document.getElementById('detalhe-ocasiao').textContent = p.ocasiao;
-  document.getElementById('detalhe-loja').textContent = p.loja;
-  document.getElementById('detalhe-preco').textContent = p.preco;
+  document.getElementById('detalhe-loja').textContent = p.loja || 'Não informada';
+  document.getElementById('detalhe-preco').textContent = p.preco ? 'R$ ' + p.preco.toFixed(2).replace('.', ',') : 'Não informado';
   document.getElementById('detalhe-estacao').textContent = p.estacao || 'Todas as estações';
   // Fill "appears in looks" thumbnails
   const relatedLooks = looks.filter(l => l.pecas.includes(id));
@@ -3428,6 +3447,7 @@ function saveAgendaEntry() {
 }
 
 function deleteAgendaEntry(id) {
+  if (!confirm('Excluir este evento?')) return;
   agendaEntries = agendaEntries.filter(e => e.id !== id);
   saveAgendaToStorage();
   renderCalendar(agendaCurrentMonth);
@@ -3612,8 +3632,7 @@ function updateDashboardStats() {
 function renderDashboardComposition() {
   const el = document.getElementById('dash-composition');
   if (!el || window.innerWidth < 768) return;
-  const ids = [0, 4, 1, 6];
-  const featured = ids.map(id => pieces.find(p => p.id === id)).filter(Boolean);
+  const featured = pieces.slice(0, 4);
   if (!featured.length) { el.innerHTML = ''; return; }
   const [first, ...rest] = featured;
   el.innerHTML = `
@@ -3640,6 +3659,9 @@ function savePiece() {
   const cor = (document.getElementById('ai-cor').value || '').trim() || 'Não informada';
   const loja = (document.getElementById('ai-loja').value || '').trim();
   const preco = parseFloat(document.getElementById('ai-preco').value) || 0;
+  const ocasiao = document.getElementById('ai-ocasiao') ? document.getElementById('ai-ocasiao').value : 'Casual';
+  const dataCompra = document.getElementById('ai-data-compra') ? document.getElementById('ai-data-compra').value : '';
+  const notas = ((document.getElementById('ai-notas') ? document.getElementById('ai-notas').value : '') || '').trim();
   const estacoes = ['est-primavera','est-verao','est-outono','est-inverno']
     .map(id => document.getElementById(id))
     .filter(el => el && el.checked)
@@ -3652,12 +3674,12 @@ function savePiece() {
   const wasEditing = editingPieceId !== null;
   if (wasEditing) {
     const idx = pieces.findIndex(p => p.id === editingPieceId);
-    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, estacao, loja, preco, img };
+    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, ocasiao, estacao, estacoes, loja, preco, dataCompra, notas, img };
     editingPieceId = null;
   } else {
     const newId = pieces.length > 0 ? Math.max(...pieces.map(p => p.id)) + 1 : 0;
-    pieces.push({ id: newId, nome, categoria, cor, ocasiao: 'Casual', loja, preco,
-      estacao, estacoes: estacao !== 'Todas' ? [estacao] : [],
+    pieces.push({ id: newId, nome, categoria, cor, ocasiao, loja, preco, dataCompra, notas,
+      estacao, estacoes,
       adicionadoEm: new Date().toISOString(), img });
   }
   savePiecesToStorage();
@@ -3681,9 +3703,14 @@ function editPiece(id) {
   document.getElementById('ai-categoria').value = p.categoria;
   const img = document.getElementById('add-preview-img');
   if (img) img.src = p.img;
+  const lojaEl = document.getElementById('ai-loja'); if (lojaEl) lojaEl.value = p.loja || '';
+  const precoEl = document.getElementById('ai-preco'); if (precoEl) precoEl.value = p.preco || '';
+  const ocasiaoEl = document.getElementById('ai-ocasiao'); if (ocasiaoEl) ocasiaoEl.value = p.ocasiao || 'Casual';
+  const dataEl = document.getElementById('ai-data-compra'); if (dataEl) dataEl.value = p.dataCompra || '';
+  const notasEl = document.getElementById('ai-notas'); if (notasEl) notasEl.value = p.notas || '';
   ['est-primavera','est-verao','est-outono','est-inverno'].forEach(eid => {
     const el = document.getElementById(eid);
-    if (el) el.checked = el.value === p.estacao;
+    if (el) el.checked = (p.estacoes || []).includes(el.value) || (!p.estacoes && el.value === p.estacao);
   });
 }
 
@@ -4001,7 +4028,11 @@ function handleImportJSON(file) {
       if (!data.version) throw new Error('invalid');
       if (data.pieces) {
         pieces = data.pieces;
-        pieces.forEach(function(p) { p.img = getFashionImg(p.categoria, p.cor); });
+        pieces.forEach(function(p) {
+          const savedImg = localStorage.getItem('vestiq_img_' + p.id);
+          if (savedImg) { p.img = savedImg; }
+          else if (!p.img || p.img.startsWith('data:image/svg+xml')) { p.img = getFashionImg(p.categoria, p.cor); }
+        });
       }
       if (data.looks)         looks         = data.looks;
       if (data.agendaEntries) agendaEntries = data.agendaEntries;
@@ -4117,6 +4148,9 @@ function resetAddScreen() {
   });
   const lojaEl = document.getElementById('ai-loja'); if (lojaEl) lojaEl.value = '';
   const precoEl = document.getElementById('ai-preco'); if (precoEl) precoEl.value = '';
+  const ocasiaoEl = document.getElementById('ai-ocasiao'); if (ocasiaoEl) ocasiaoEl.value = 'Casual';
+  const dataEl = document.getElementById('ai-data-compra'); if (dataEl) dataEl.value = '';
+  const notasEl = document.getElementById('ai-notas'); if (notasEl) notasEl.value = '';
 }
 
 /* ═══════════════════════════════════════════════════════
