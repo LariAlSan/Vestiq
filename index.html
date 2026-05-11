@@ -1118,13 +1118,14 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 .measure-row {
   display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
 }
-.measure-field { display: flex; flex-direction: column; gap: 4px; }
+.measure-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .measure-field label { font-size: 11px; font-weight: 700; color: var(--text-2); text-align: center; }
 .measure-field input {
   border: 1.5px solid var(--border); border-radius: 10px;
   padding: 10px 8px; font-size: 14px; color: var(--text);
   background: var(--bg); outline: none; text-align: center;
   font-family: inherit; transition: border-color 0.2s;
+  width: 100%; box-sizing: border-box;
 }
 .measure-field input:focus { border-color: var(--purple); }
 
