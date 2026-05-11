@@ -3993,10 +3993,10 @@ function savePiece() {
     .map(el => el.value);
   const estacao = estacoes.length > 0 ? estacoes[0] : 'Todas';
 
-  const img = currentPieceImg || getFashionImg(categoria, cor);
-  currentPieceImg = null;
-
   const wasEditing = editingPieceId !== null;
+  const existingImg = wasEditing ? (pieces.find(p => p.id === editingPieceId) || {}).img : null;
+  const img = currentPieceImg || existingImg || getFashionImg(categoria, cor);
+  currentPieceImg = null;
   if (wasEditing) {
     const idx = pieces.findIndex(p => p.id === editingPieceId);
     if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, ocasiao, estacao, estacoes, loja, preco, dataCompra, notas, materiais, img };
