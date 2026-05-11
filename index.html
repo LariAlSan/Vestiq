@@ -2082,6 +2082,11 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
             <button class="btn-ghost" style="justify-content:flex-start;gap:10px;" onclick="triggerImportJSON()">
               <span style="font-size:16px;">📥</span> Importar JSON
             </button>
+            <div style="margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;">
+              <button class="btn-ghost" style="justify-content:flex-start;gap:10px;color:#ef4444;" onclick="resetApp()">
+                <span style="font-size:16px;">🗑️</span> Limpar todos os dados
+              </button>
+            </div>
           </div>
           <input type="file" id="import-json-input" accept=".json" style="display:none" onchange="handleImportJSON(this.files[0])">
         </div>
@@ -3702,6 +3707,13 @@ function exportJPEG() {
     a.click();
     URL.revokeObjectURL(a.href);
   }, 'image/jpeg', 0.92);
+}
+
+function resetApp() {
+  if (!confirm('Apagar todas as peças, looks, agenda e perfil? Esta ação não pode ser desfeita.')) return;
+  const keep = new Set(['vestiq_dark','vestiq_gdrive_token','vestiq_gdrive_token_exp','vestiq_gdrive_fileid','vestiq_gdrive_email']);
+  Object.keys(localStorage).filter(function(k) { return k.startsWith('vestiq_') && !keep.has(k); }).forEach(function(k) { localStorage.removeItem(k); });
+  location.reload();
 }
 
 function triggerImportJSON() {
