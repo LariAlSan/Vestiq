@@ -1,4 +1,4 @@
-const CACHE = 'vestiq-v1.22';
+const CACHE = 'vestiq-v1.23';
 const ASSETS = ['./index.html', './icon-512.png', './manifest.json'];
 
 self.addEventListener('install', e => {
