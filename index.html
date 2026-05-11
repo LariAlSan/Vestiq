@@ -3778,6 +3778,12 @@ function loadFromStorage() {
       savePiecesToStorage();
       try { localStorage.setItem('vestiq_schema_version', '2'); } catch(e) {}
     }
+    if (schemaV < 3) {
+      pieces = []; looks = []; agendaEntries = []; viagens = [];
+      Object.assign(currentUser, { nome:'', email:'', tipoCorpo:'', busto:0, cintura:0, quadril:0 });
+      ['vestiq_pieces','vestiq_looks','vestiq_agenda','vestiq_viagens','vestiq_user','vestiq_last_modified'].forEach(function(k) { localStorage.removeItem(k); });
+      try { localStorage.setItem('vestiq_schema_version', '3'); } catch(e) {}
+    }
   } catch(e) { console.warn('[Vestiq] loadFromStorage error:', e); }
 }
 
