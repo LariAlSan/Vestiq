@@ -4270,6 +4270,9 @@ window.addEventListener('resize', () => { renderDashboardComposition(); });
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw-vestiq.js');
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    window.location.reload();
+  });
 }
 
 /* ─── GDRIVE ─── */
