@@ -4027,21 +4027,18 @@ function toggleExportPanel(btn) {
 
 // ===== LOCALSTORAGE =====
 function savePiecesToStorage() {
-  try {
-    const slim = pieces.map(function(p) { const o = Object.assign({}, p); delete o.img; return o; });
-    localStorage.setItem('vestiq_pieces', JSON.stringify(slim));
-    localStorage.setItem('vestiq_last_modified', new Date().toISOString());
-  } catch(e) {
-    showToast('Erro ao salvar dados.', 'err');
-    console.warn('[Vestiq] savePieces:', e);
-    GDRIVE.autoSave(); return;
-  }
   pieces.forEach(function(p) {
-    if (!p.img || p.img.startsWith('data:image/svg+xml')) return;
-    try { localStorage.setItem('vestiq_img_' + p.id, p.img); } catch(e2) {
-      showToast('Armazenamento cheio — foto não salva.', 'err');
+    if (p.img && !p.img.startsWith('data:image/svg+xml')) {
+      try { localStorage.setItem('vestiq_img_' + p.id, p.img); } catch(e) {}
     }
   });
+  try {
+    localStorage.setItem('vestiq_pieces', JSON.stringify(pieces));
+    localStorage.setItem('vestiq_last_modified', new Date().toISOString());
+  } catch(e) {
+    showToast('Armazenamento cheio — alguns dados podem não ter sido salvos.', 'err');
+    console.warn('[Vestiq] savePieces:', e);
+  }
   GDRIVE.autoSave();
 }
 function saveLooksToStorage() {
