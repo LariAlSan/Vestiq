@@ -2775,6 +2775,10 @@ function navigate(screenId) {
   if (navHistory.length > 50) navHistory = navHistory.slice(-50);
   navHistory.push(currentScreen);
   currentScreen = screenId;
+  const PERSIST_SCREENS = ['dashboard','armario','looks','agenda','perfil','sugestao'];
+  if (PERSIST_SCREENS.includes(screenId)) {
+    try { localStorage.setItem('vestiq_last_screen', screenId); } catch(e) {}
+  }
 
   if (screenId === 'armario') renderPiecesGrid();
   if (screenId === 'perfil') updateProfileBody();
@@ -3832,6 +3836,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // headline editorial permanece; não sobrescrever
   GDRIVE.init();
   renderGDriveRow();
+  const _saved = localStorage.getItem('vestiq_last_screen');
+  const _restorable = ['dashboard','armario','looks','agenda','perfil','sugestao'];
+  const _hasData = currentUser.nome || pieces.length > 0 || looks.length > 0;
+  navigate(_hasData && _saved && _restorable.includes(_saved) ? _saved : (_hasData ? 'dashboard' : 'onboarding'));
 });
 window.addEventListener('resize', () => { renderDashboardComposition(); });
 
