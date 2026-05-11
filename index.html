@@ -2012,11 +2012,11 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         </div>
         <div class="input-group">
           <label>Loja / Marca</label>
-          <input type="text" placeholder="Ex: Zara, Renner...">
+          <input type="text" id="ai-loja" placeholder="Ex: Zara, Renner...">
         </div>
         <div class="input-group">
           <label>Preço pago (R$)</label>
-          <input type="number" placeholder="0,00">
+          <input type="number" id="ai-preco" placeholder="0,00" min="0" step="0.01">
         </div>
         <div class="input-group">
           <label>Data de compra</label>
@@ -3637,12 +3637,13 @@ function savePiece() {
   const nome = (document.getElementById('ai-nome').value || '').trim() || 'Nova Peça';
   const categoria = document.getElementById('ai-categoria').value;
   const cor = (document.getElementById('ai-cor').value || '').trim() || 'Não informada';
+  const loja = (document.getElementById('ai-loja').value || '').trim();
+  const preco = parseFloat(document.getElementById('ai-preco').value) || 0;
   const estacoes = ['est-primavera','est-verao','est-outono','est-inverno']
     .map(id => document.getElementById(id))
     .filter(el => el && el.checked)
     .map(el => el.value);
   const estacao = estacoes.length > 0 ? estacoes[0] : 'Todas';
-  const encoded = encodeURIComponent(nome.slice(0,14).replace(/\s+/g, '+'));
 
   const img = currentPieceImg || getFashionImg(categoria, cor);
   currentPieceImg = null;
@@ -3650,11 +3651,11 @@ function savePiece() {
   const wasEditing = editingPieceId !== null;
   if (wasEditing) {
     const idx = pieces.findIndex(p => p.id === editingPieceId);
-    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, estacao, img };
+    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, estacao, loja, preco, img };
     editingPieceId = null;
   } else {
     const newId = pieces.length > 0 ? Math.max(...pieces.map(p => p.id)) + 1 : 0;
-    pieces.push({ id: newId, nome, categoria, cor, ocasiao: 'Casual', loja: '', preco: 0,
+    pieces.push({ id: newId, nome, categoria, cor, ocasiao: 'Casual', loja, preco,
       estacao, estacoes: estacao !== 'Todas' ? [estacao] : [],
       adicionadoEm: new Date().toISOString(), img });
   }
@@ -3692,6 +3693,7 @@ function archivePiece(id) {
   if (idx !== -1) {
     const deletedId = pieces[idx].id;
     pieces.splice(idx, 1);
+    try { localStorage.removeItem('vestiq_img_' + deletedId); } catch(e) {}
     looks.forEach(function(l) { l.pecas = l.pecas.filter(function(pid) { return pid !== deletedId; }); });
     saveLooksToStorage();
   }
@@ -4026,9 +4028,20 @@ function toggleExportPanel(btn) {
 // ===== LOCALSTORAGE =====
 function savePiecesToStorage() {
   try {
-    localStorage.setItem('vestiq_pieces', JSON.stringify(pieces));
+    const slim = pieces.map(function(p) { const o = Object.assign({}, p); delete o.img; return o; });
+    localStorage.setItem('vestiq_pieces', JSON.stringify(slim));
     localStorage.setItem('vestiq_last_modified', new Date().toISOString());
-  } catch(e) { console.warn('[Vestiq] savePieces:', e); }
+  } catch(e) {
+    showToast('Erro ao salvar dados.', 'err');
+    console.warn('[Vestiq] savePieces:', e);
+    GDRIVE.autoSave(); return;
+  }
+  pieces.forEach(function(p) {
+    if (!p.img || p.img.startsWith('data:image/svg+xml')) return;
+    try { localStorage.setItem('vestiq_img_' + p.id, p.img); } catch(e2) {
+      showToast('Armazenamento cheio — foto não salva.', 'err');
+    }
+  });
   GDRIVE.autoSave();
 }
 function saveLooksToStorage() {
@@ -4045,7 +4058,12 @@ function loadFromStorage() {
     if (sp) {
       pieces = JSON.parse(sp);
       pieces.forEach(function(pc) {
-        if (!pc.img || pc.img.startsWith('data:image/svg+xml')) pc.img = getFashionImg(pc.categoria, pc.cor);
+        const storedImg = localStorage.getItem('vestiq_img_' + pc.id);
+        if (storedImg) {
+          pc.img = storedImg;
+        } else if (!pc.img || pc.img.startsWith('data:image/svg+xml')) {
+          pc.img = getFashionImg(pc.categoria, pc.cor);
+        }
         // D1: migrar estacao string → estacoes array
         if (!pc.estacoes) pc.estacoes = pc.estacao ? [pc.estacao] : [];
         // D2: migrar preco string → número
@@ -4099,6 +4117,8 @@ function resetAddScreen() {
     const el = document.getElementById(id);
     if (el) el.checked = false;
   });
+  const lojaEl = document.getElementById('ai-loja'); if (lojaEl) lojaEl.value = '';
+  const precoEl = document.getElementById('ai-preco'); if (precoEl) precoEl.value = '';
 }
 
 /* ═══════════════════════════════════════════════════════
