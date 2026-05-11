@@ -115,7 +115,7 @@ body {
     z-index: 100;
     background: #fff;
     border-bottom: 1px solid #f0f0f0;
-    padding: 0 44px;
+    padding: 0 40px;
     height: 68px;
     gap: 32px;
     box-shadow: 0 1px 4px rgba(196,120,90,0.06);
@@ -224,7 +224,7 @@ body {
   .screen {
     background: var(--bg);
     padding-bottom: 24px !important;
-    overflow-y: visible;
+    overflow-y: auto;
     min-height: calc(100vh - 68px);
   }
 
@@ -234,8 +234,8 @@ body {
     max-width: 1280px;
     margin: 0 auto;
     width: 100%;
-    padding-left: 32px;
-    padding-right: 32px;
+    padding-left: 40px;
+    padding-right: 40px;
     background: #fff;
     position: sticky;
     top: 68px;
@@ -292,7 +292,7 @@ body {
   }
   #stat-cats-wrap { display: block !important; }
   #dash-stat-strip .stat-mini { padding: 16px 16px !important; }
-  #dash-stat-strip .stat-mini:first-child { padding-left: 32px !important; }
+  #dash-stat-strip .stat-mini:first-child { padding-left: 40px !important; }
   #dash-stat-strip .stat-mini .stat-num { font-size: 34px !important; }
   #dash-ia-wrap {
     padding-left: 28px !important;
@@ -306,8 +306,8 @@ body {
     margin-left: auto;
     margin-right: auto;
     width: 100%;
-    padding-left: 32px !important;
-    padding-right: 32px !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
   }
   /* Most-used pieces: 4-col grid */
   #screen-dashboard .most-used-scroll {
@@ -334,8 +334,13 @@ body {
   /* ── ARMÁRIO ── */
   #screen-armario .screen-hero {
     background: var(--bg);
+    max-width: 1280px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 40px;
+    padding-right: 40px;
   }
-  #screen-armario > div:nth-child(2),
+  #screen-armario > :nth-child(2),
   #screen-armario > div:nth-child(3) {
     max-width: 1280px;
     margin: 0 auto;
@@ -357,6 +362,15 @@ body {
     padding-left: 40px !important;
     padding-right: 40px !important;
     gap: 14px !important;
+  }
+
+  /* ── INVENTÁRIO ── */
+  #screen-inventario > div:not(.screen-header) {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
   }
 
   /* ── LOOKS ── */
