@@ -2314,14 +2314,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 let onbReturnScreen = 'dashboard';
 
 // ===== USER DATA =====
-const currentUser = {
-  nome: 'Larissa',
-  email: 'larissadealmeidasantana@gmail.com',
-  tipoCorpo: 'Ampulheta',
-  busto: 90,
-  cintura: 65,
-  quadril: 95
-};
+const currentUser = { nome:'', email:'', tipoCorpo:'', busto:0, cintura:0, quadril:0 };
 
 // ===== FASHION IMAGE GENERATOR =====
 function getFashionImg(categoria, cor) {
@@ -2435,38 +2428,13 @@ function getFashionImg(categoria, cor) {
 }
 
 // ===== PIECES DATA =====
-let pieces = [
-  { id:0, nome:'Blazer Mauva',      categoria:'Casacos',    cor:'Mauva',      ocasiao:'Trabalho', loja:'Zara',    preco:'R$ 320', estacao:'Outono',    img: getFashionImg('Casacos',  'Mauva')      },
-  { id:1, nome:'Camisa Branca',     categoria:'Tops',       cor:'Branco',     ocasiao:'Trabalho', loja:'C&A',     preco:'R$ 89',  estacao:'Primavera', img: getFashionImg('Tops',     'Branco')     },
-  { id:2, nome:'Calça Preta',       categoria:'Calças',     cor:'Preto',      ocasiao:'Casual',   loja:'Renner',  preco:'R$ 149', estacao:'Inverno',   img: getFashionImg('Calças',   'Preto')      },
-  { id:3, nome:'Jeans Azul',        categoria:'Calças',     cor:'Azul',       ocasiao:'Casual',   loja:"Levi's",  preco:'R$ 299', estacao:'Verão',     img: getFashionImg('Calças',   'Azul')       },
-  { id:4, nome:'Vestido Areia',     categoria:'Vestidos',   cor:'Areia',      ocasiao:'Festa',    loja:'Farm',    preco:'R$ 420', estacao:'Verão',     img: getFashionImg('Vestidos', 'Areia')      },
-  { id:5, nome:'Camiseta Mauva',    categoria:'Tops',       cor:'Mauva',      ocasiao:'Casual',   loja:'Hering',  preco:'R$ 59',  estacao:'Verão',     img: getFashionImg('Tops',     'Mauva')      },
-  { id:6, nome:'Tênis Sálvia',      categoria:'Calçados',   cor:'Verde',      ocasiao:'Casual',   loja:'Nike',    preco:'R$ 480', estacao:'Primavera', img: getFashionImg('Calçados', 'Verde')      },
-  { id:7, nome:'Scarpin Ameixa',    categoria:'Calçados',   cor:'Mauva Esc.', ocasiao:'Festa',    loja:'Arezzo',  preco:'R$ 390', estacao:'Outono',    img: getFashionImg('Calçados', 'Mauva Esc.') },
-];
+let pieces = [];
 
-// ===== LOOKS DATA (referencia IDs de pieces) =====
-let looks = [
-  { id:0, nome:'Look Trabalho', ocasiao:'Trabalho', estacao:'Outono',    pecas:[0,1,2,7] },
-  { id:1, nome:'Look Festa',    ocasiao:'Festa',    estacao:'Verão',     pecas:[4,7,5] },
-  { id:2, nome:'Look Weekend',  ocasiao:'Casual',   estacao:'Verão',     pecas:[5,3,6] },
-  { id:3, nome:'Look Reunião',  ocasiao:'Trabalho', estacao:'Primavera', pecas:[1,2,0,7] },
-];
+// ===== LOOKS DATA =====
+let looks = [];
 
-const _today = new Date();
-const _todayStr = `${_today.getFullYear()}-${String(_today.getMonth()+1).padStart(2,'0')}-${String(_today.getDate()).padStart(2,'0')}`;
-const _d3 = new Date(_today); _d3.setDate(_d3.getDate()+3);
-const _d3Str = `${_d3.getFullYear()}-${String(_d3.getMonth()+1).padStart(2,'0')}-${String(_d3.getDate()).padStart(2,'0')}`;
-
-let agendaEntries = [
-  { id:0, data:_todayStr, hora:'09:00', evento:'Reunião de equipe',  lookId:0 },
-  { id:1, data:_d3Str,    hora:'20:00', evento:'Jantar aniversário', lookId:1 },
-];
-
-let viagens = [
-  { id:0, nome:'Viagem São Paulo', destino:'São Paulo', dataIda:'2026-06-15', dataVolta:'2026-06-18', looks:[2,3] },
-];
+let agendaEntries = [];
+let viagens = [];
 
 // ===== STATE =====
 let currentScreen = 'onboarding';
@@ -3340,7 +3308,7 @@ function updateDashboardStats() {
   const greeting = document.getElementById('dashboard-greeting');
   if (greeting && greeting.textContent.startsWith('Vista')) {} // mantém headline editorial
   const av = document.getElementById('dash-avatar');
-  if (av) av.textContent = currentUser.nome[0].toUpperCase();
+  if (av && currentUser.nome) av.textContent = currentUser.nome[0].toUpperCase();
   const dateEl = document.getElementById('dashboard-date');
   if (dateEl) {
     const d = new Date();
@@ -3470,7 +3438,7 @@ function editPerfil() {
   if (nd) nd.textContent = currentUser.nome;
   if (ed) ed.textContent = currentUser.email;
   const av = document.querySelector('.topnav-avatar');
-  if (av) av.textContent = currentUser.nome[0].toUpperCase();
+  if (av && currentUser.nome) av.textContent = currentUser.nome[0].toUpperCase();
   saveUserToStorage();
   updateDashboardStats();
 }
@@ -3834,7 +3802,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSidePanel('onboarding');
   updateProfileBody();
   const av = document.querySelector('.topnav-avatar');
-  if (av) av.textContent = currentUser.nome[0].toUpperCase();
+  if (av && currentUser.nome) av.textContent = currentUser.nome[0].toUpperCase();
   const nd = document.getElementById('perfil-nome-display');
   if (nd) nd.textContent = currentUser.nome;
   const ed = document.getElementById('perfil-email-display');
