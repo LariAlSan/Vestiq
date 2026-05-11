@@ -1973,15 +1973,15 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <!-- Stats summary -->
         <div style="display:flex;gap:10px;">
           <div style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-top:3px solid var(--primary);border-radius:12px;padding:14px;text-align:center;">
-            <p style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">24</p>
+            <p id="perfil-stat-pecas" style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">0</p>
             <p style="font-size:10px;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;">Peças</p>
           </div>
           <div style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-top:3px solid var(--primary);border-radius:12px;padding:14px;text-align:center;">
-            <p style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">8</p>
+            <p id="perfil-stat-looks" style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">0</p>
             <p style="font-size:10px;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;">Looks</p>
           </div>
           <div style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-top:3px solid var(--primary);border-radius:12px;padding:14px;text-align:center;">
-            <p style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">3,4k</p>
+            <p id="perfil-stat-investido" style="font-size:26px;font-weight:400;color:var(--text);font-family:'Cormorant Garamond',serif;">0</p>
             <p style="font-size:10px;color:var(--text-2);font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px;">Investido</p>
           </div>
         </div>
@@ -2591,6 +2591,7 @@ function deleteLook(id) {
   saveAgendaToStorage();
   saveViagensToStorage();
   renderLooksGrid();
+  updateDashboardStats();
   showToast('Look excluído');
 }
 
@@ -2762,6 +2763,7 @@ function navigate(screenId) {
     renderLooksGrid();
   }
   if (screenId === 'dashboard')    { renderDashboardLooks(); renderDashboardUsed(); renderDashboardComposition(); updateDashboardStats(); }
+  if (screenId === 'perfil')       updateDashboardStats();
   if (screenId === 'sugestao')     renderSuggestCards();
   if (screenId === 'criar-look')   { currentLookSlots = { 0: null, 1: null, 2: null, 3: null }; }
   if (screenId === 'agenda')       renderAgenda();
@@ -3318,6 +3320,15 @@ function updateDashboardStats() {
     const d = new Date();
     dateEl.textContent = d.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short' });
   }
+  const elPP = document.getElementById('perfil-stat-pecas');
+  const elPL = document.getElementById('perfil-stat-looks');
+  const elPI = document.getElementById('perfil-stat-investido');
+  if (elPP) elPP.textContent = pieces.length;
+  if (elPL) elPL.textContent = looks.length;
+  if (elPI) {
+    const total = pieces.reduce(function(s, p) { return s + (p.preco || 0); }, 0);
+    elPI.textContent = total >= 1000 ? (total / 1000).toFixed(1).replace('.', ',') + 'k' : String(Math.round(total));
+  }
 }
 
 // ===== DASHBOARD COMPOSITION (desktop right panel) =====
@@ -3407,6 +3418,7 @@ function archivePiece(id) {
     saveLooksToStorage();
   }
   savePiecesToStorage();
+  updateDashboardStats();
   showToast('Peça arquivada');
   navigate('armario');
 }
