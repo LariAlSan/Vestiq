@@ -1502,6 +1502,45 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 [data-theme="dark"] .multiselect-options { background: #261E1A; border-color: var(--sage); }
 [data-theme="dark"] .material-chip { background: #302420; border-color: #4A3830; color: var(--text-2); }
 [data-theme="dark"] .material-chip.selected { background: rgba(196,120,90,0.15); border-color: var(--sage); color: var(--sage); }
+/* ===== INVENTÁRIO ===== */
+.inv-stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0 20px; }
+.inv-stat-card { background:var(--surface,#fff); border:1.5px solid var(--border); border-radius:18px; padding:14px 16px; text-align:center; }
+.inv-stat-card--warn { border-color:var(--plum); }
+.inv-stat-num { font-size:22px; font-weight:800; color:var(--text); font-family:'Cormorant Garamond',serif; letter-spacing:-0.5px; }
+.inv-stat-card--warn .inv-stat-num { color:var(--plum); }
+.inv-stat-lbl { font-size:11px; font-weight:600; color:var(--text-2); text-transform:uppercase; letter-spacing:0.4px; margin-top:2px; }
+.inv-section { margin-bottom:24px; }
+.inv-section-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; font-style:italic; color:var(--text); margin:0 0 12px; }
+.inv-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.inv-bar-label { font-size:12px; font-weight:600; color:var(--text-2); min-width:90px; max-width:90px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.inv-bar-track { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+.inv-bar-fill { height:100%; border-radius:4px; background:var(--sage); transition:width 0.5s cubic-bezier(.4,0,.2,1); }
+.inv-bar-fill--price { background:var(--plum); }
+.inv-bar-count { font-size:12px; font-weight:700; color:var(--text); min-width:24px; text-align:right; }
+.inv-color-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.inv-color-chip { display:flex; align-items:center; gap:6px; background:var(--bg); border:1.5px solid var(--border); border-radius:20px; padding:5px 10px 5px 7px; }
+.inv-color-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; border:1.5px solid rgba(0,0,0,0.08); }
+.inv-color-name { font-size:12px; font-weight:600; color:var(--text-2); }
+.inv-color-count { font-size:11px; font-weight:700; color:var(--text); background:var(--border); border-radius:6px; padding:1px 5px; }
+.inv-season-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.inv-season-card { background:var(--bg); border:1.5px solid var(--border); border-radius:16px; padding:14px 10px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; }
+.inv-season-icon { font-size:22px; }
+.inv-season-count { font-size:20px; font-weight:800; color:var(--text); font-family:'Cormorant Garamond',serif; }
+.inv-season-name { font-size:11px; font-weight:600; color:var(--text-2); }
+.inv-piece-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+.inv-piece-row:last-child { border-bottom:none; }
+.inv-piece-rank { font-size:14px; font-weight:800; color:var(--plum); min-width:18px; }
+.inv-piece-thumb { width:44px; height:44px; border-radius:10px; object-fit:cover; flex-shrink:0; }
+.inv-piece-info { flex:1; min-width:0; }
+.inv-piece-name { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.inv-piece-sub { font-size:11px; color:var(--text-2); margin-top:2px; }
+.inv-piece-badge { background:var(--sage-light,#EAF0EC); color:var(--sage); border-radius:8px; padding:3px 9px; font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+[data-theme="dark"] .inv-stat-card { background:#261E1A; border-color:#4A3830; }
+[data-theme="dark"] .inv-season-card, [data-theme="dark"] .inv-color-chip { background:#302420; border-color:#4A3830; }
+[data-theme="dark"] .inv-bar-track { background:#4A3830; }
+[data-theme="dark"] .inv-piece-row { border-bottom-color:#4A3830; }
+[data-theme="dark"] .inv-color-count { background:#4A3830; }
+@media (min-width:768px) { .inv-stats-grid { grid-template-columns:repeat(4,1fr); } .inv-season-grid { grid-template-columns:repeat(5,1fr); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -1649,6 +1688,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
     <button class="topnav-link" id="nav-armario" onclick="navigate('armario')">Armário</button>
     <button class="topnav-link" id="nav-looks" onclick="navigate('looks')">Looks</button>
     <button class="topnav-link" id="nav-agenda" onclick="navigate('agenda')">Agenda</button>
+    <button class="topnav-link" id="nav-inventario" onclick="navigate('inventario')">Inventário</button>
     <button class="topnav-link" id="nav-perfil" onclick="navigate('perfil')">Perfil</button>
   </div>
   <button class="topnav-avatar" onclick="navigate('perfil')" title="Perfil"></button>
@@ -2485,6 +2525,64 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
     <div id="mala-detalhe-looks" style="padding:0 20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
   </div>
 
+  <!-- ========== SCREEN 12: INVENTÁRIO ========== -->
+  <div id="screen-inventario" class="screen">
+    <div class="screen-header">
+      <h1>Inventário</h1>
+    </div>
+    <!-- Empty state -->
+    <div id="inv-empty" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center;">
+      <div style="font-size:40px;color:var(--plum);animation:ia-pulse 3s ease-in-out infinite;margin-bottom:16px;">✦</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;font-style:italic;color:var(--text);margin-bottom:8px;">Seu armário está vazio</h3>
+      <p style="font-size:14px;color:var(--text-soft);line-height:1.6;max-width:280px;margin:0 auto 24px;">Adicione peças para ver relatórios e insights sobre o seu guarda-roupa.</p>
+      <button class="btn-primary" style="width:auto;padding:11px 28px;" onclick="navigate('adicionar')">Adicionar primeira peça</button>
+    </div>
+    <!-- Content -->
+    <div id="inv-content" style="padding:0 20px 40px;">
+      <div class="inv-stats-grid" id="inv-stats"></div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Por Categoria</h2>
+        <div id="inv-by-category"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Por Cor</h2>
+        <div id="inv-by-color" class="inv-color-grid"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Por Ocasião</h2>
+        <div id="inv-by-ocasiao"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Por Estação</h2>
+        <div id="inv-by-season" class="inv-season-grid"></div>
+      </div>
+
+      <div class="inv-section" id="inv-material-section">
+        <h2 class="inv-section-title">Por Material</h2>
+        <div id="inv-by-material"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Faixa de Preço</h2>
+        <div id="inv-by-price"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Mais combinadas em looks</h2>
+        <div id="inv-top-pieces"></div>
+      </div>
+
+      <div class="inv-section">
+        <h2 class="inv-section-title">Nunca usadas em look</h2>
+        <div id="inv-unused"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== TAB BAR ========== -->
   <nav id="tabbar">
     <button class="tab-btn" id="tab-dashboard" onclick="navigate('dashboard')">
@@ -2502,6 +2600,10 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
     <button class="tab-btn" id="tab-agenda" onclick="navigate('agenda')">
       <svg fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       Agenda
+    </button>
+    <button class="tab-btn" id="tab-inventario" onclick="navigate('inventario')">
+      <svg fill="none" viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" stroke-width="2"/><rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" stroke-width="2"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="2"/></svg>
+      Inventário
     </button>
     <button class="tab-btn" id="tab-perfil" onclick="navigate('perfil')">
       <svg fill="none" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -3085,7 +3187,8 @@ function navigate(screenId) {
     detalhe: 'nav-armario',
     adicionar: 'nav-armario',
     agenda: 'nav-agenda',
-    'mala-detalhe': 'nav-agenda'
+    'mala-detalhe': 'nav-agenda',
+    inventario: 'nav-inventario'
   };
   const linkId = topNavMap[screenId];
   if (linkId) {
@@ -3110,13 +3213,14 @@ function navigate(screenId) {
   if (navHistory.length > 50) navHistory = navHistory.slice(-50);
   navHistory.push(currentScreen);
   currentScreen = screenId;
-  const PERSIST_SCREENS = ['dashboard','armario','looks','agenda','perfil','sugestao'];
+  const PERSIST_SCREENS = ['dashboard','armario','looks','agenda','perfil','sugestao','inventario'];
   if (PERSIST_SCREENS.includes(screenId)) {
     try { localStorage.setItem('vestiq_last_screen', screenId); } catch(e) {}
   }
 
   if (screenId === 'armario') renderPiecesGrid();
   if (screenId === 'perfil') updateProfileBody();
+  if (screenId === 'inventario') renderInventario();
 
   updateSidePanel(screenId);
 }
@@ -3734,6 +3838,140 @@ function renderDashboardComposition() {
         </div>
       </div>`).join('')}
   `;
+}
+
+// ===== INVENTÁRIO =====
+const INV_COLOR_MAP = {
+  'Preto':'#1a1a1a','Branco':'#f0ece8','Cinza':'#9e9e9e','Azul':'#1565c0',
+  'Azul Claro':'#64b5f6','Azul Marinho':'#0d2244','Verde':'#2e7d32',
+  'Verde Musgo':'#558b2f','Vermelho':'#c62828','Rosa':'#d81b60',
+  'Rosa Claro':'#f8bbd0','Laranja':'#e65100','Amarelo':'#f9a825',
+  'Roxo':'#6a1b9a','Lilás':'#ce93d8','Marrom':'#4e342e','Bege':'#d4b896',
+  'Nude':'#c9a882','Caramelo':'#c78c4a','Terracota':'#c4785a',
+  'Vinho':'#880e4f','Salmão':'#ff8a65','Menta':'#a5d6a7','Khaki':'#bcaa7e',
+  'Mauva':'#d4889a','Sálvia':'#b2c4b4','Creme':'#fdf6f0','Dourado':'#f9a825',
+};
+
+function renderInventario() {
+  const empty = document.getElementById('inv-empty');
+  const content = document.getElementById('inv-content');
+  if (!pieces.length) {
+    empty.style.display = 'flex'; content.style.display = 'none'; return;
+  }
+  empty.style.display = 'none'; content.style.display = 'block';
+
+  const lookCounts = {};
+  looks.forEach(function(l) { l.pecas.forEach(function(pid) { lookCounts[pid] = (lookCounts[pid] || 0) + 1; }); });
+
+  // Resumo
+  const totalInvested = pieces.reduce(function(s, p) { return s + (p.preco || 0); }, 0);
+  const unusedCount = pieces.filter(function(p) { return !lookCounts[p.id]; }).length;
+  const fmtVal = totalInvested >= 1000
+    ? 'R$' + (totalInvested/1000).toFixed(1).replace('.',',') + 'k'
+    : 'R$' + totalInvested.toLocaleString('pt-BR');
+  document.getElementById('inv-stats').innerHTML =
+    `<div class="inv-stat-card"><div class="inv-stat-num">${pieces.length}</div><div class="inv-stat-lbl">Peças</div></div>` +
+    `<div class="inv-stat-card"><div class="inv-stat-num">${fmtVal}</div><div class="inv-stat-lbl">Investido</div></div>` +
+    `<div class="inv-stat-card"><div class="inv-stat-num">${looks.length}</div><div class="inv-stat-lbl">Looks</div></div>` +
+    `<div class="inv-stat-card inv-stat-card--warn"><div class="inv-stat-num">${unusedCount}</div><div class="inv-stat-lbl">Sem uso</div></div>`;
+
+  function barChart(data, containerId, fillClass) {
+    fillClass = fillClass || '';
+    const max = Math.max.apply(null, data.map(function(d) { return d.count; }).concat([1]));
+    document.getElementById(containerId).innerHTML = data.map(function(d) {
+      return `<div class="inv-bar-row">
+        <span class="inv-bar-label" title="${d.label}">${d.label}</span>
+        <div class="inv-bar-track"><div class="inv-bar-fill ${fillClass}" style="width:${Math.round(d.count/max*100)}%"></div></div>
+        <span class="inv-bar-count">${d.count}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function countBy(arr, keyFn) {
+    const m = {};
+    arr.forEach(function(x) { const k = keyFn(x); if (k) m[k] = (m[k]||0) + 1; });
+    return Object.entries(m).map(function(e) { return {label:e[0],count:e[1]}; }).sort(function(a,b) { return b.count-a.count; });
+  }
+
+  // Por Categoria
+  barChart(countBy(pieces, function(p) { return p.categoria; }), 'inv-by-category');
+
+  // Por Cor
+  const colorData = countBy(pieces, function(p) { return p.cor; });
+  document.getElementById('inv-by-color').innerHTML = colorData.map(function(d) {
+    const hex = INV_COLOR_MAP[d.label] || '#aaaaaa';
+    return `<div class="inv-color-chip">
+      <div class="inv-color-dot" style="background:${hex};"></div>
+      <span class="inv-color-name">${d.label}</span>
+      <span class="inv-color-count">${d.count}</span>
+    </div>`;
+  }).join('');
+
+  // Por Ocasião
+  barChart(countBy(pieces, function(p) { return p.ocasiao; }), 'inv-by-ocasiao');
+
+  // Por Estação
+  const sCounts = {Primavera:0,Verão:0,Outono:0,Inverno:0,Todas:0};
+  pieces.forEach(function(p) {
+    const sl = (p.estacoes && p.estacoes.length) ? p.estacoes : [p.estacao||'Todas'];
+    sl.forEach(function(s) { if (sCounts[s] !== undefined) sCounts[s]++; });
+  });
+  const SICONS = {Primavera:'🌸',Verão:'☀️',Outono:'🍂',Inverno:'❄️',Todas:'✦'};
+  document.getElementById('inv-by-season').innerHTML = Object.entries(sCounts)
+    .filter(function(e) { return e[1] > 0; })
+    .map(function(e) {
+      return `<div class="inv-season-card">
+        <span class="inv-season-icon">${SICONS[e[0]]||'✦'}</span>
+        <span class="inv-season-count">${e[1]}</span>
+        <span class="inv-season-name">${e[0]}</span>
+      </div>`;
+    }).join('');
+
+  // Por Material
+  const matCounts = {};
+  pieces.forEach(function(p) { (p.materiais||[]).forEach(function(m) { matCounts[m]=(matCounts[m]||0)+1; }); });
+  const matData = Object.entries(matCounts).map(function(e) { return {label:e[0],count:e[1]}; }).sort(function(a,b) { return b.count-a.count; });
+  const matSection = document.getElementById('inv-material-section');
+  if (matData.length) { barChart(matData, 'inv-by-material'); matSection.style.display = 'block'; }
+  else matSection.style.display = 'none';
+
+  // Faixa de Preço
+  const BUCKETS = [
+    {label:'Sem preço',test:function(p){return !p.preco;}},
+    {label:'Até R$50',test:function(p){return p.preco>0&&p.preco<=50;}},
+    {label:'R$51–100',test:function(p){return p.preco>50&&p.preco<=100;}},
+    {label:'R$101–200',test:function(p){return p.preco>100&&p.preco<=200;}},
+    {label:'R$201–500',test:function(p){return p.preco>200&&p.preco<=500;}},
+    {label:'Acima R$500',test:function(p){return p.preco>500;}},
+  ];
+  const priceData = BUCKETS.map(function(b) { return {label:b.label,count:pieces.filter(b.test).length}; }).filter(function(d){return d.count>0;});
+  barChart(priceData, 'inv-by-price', 'inv-bar-fill--price');
+
+  // Mais combinadas
+  const topPieces = pieces.slice().sort(function(a,b){return (lookCounts[b.id]||0)-(lookCounts[a.id]||0);}).slice(0,5).filter(function(p){return lookCounts[p.id];});
+  document.getElementById('inv-top-pieces').innerHTML = topPieces.length
+    ? topPieces.map(function(p,i) {
+        const n = lookCounts[p.id];
+        return `<div class="inv-piece-row" onclick="openPiece(${p.id})">
+          <span class="inv-piece-rank">${i+1}</span>
+          <img src="${p.img}" class="inv-piece-thumb" alt="${p.nome}">
+          <div class="inv-piece-info"><p class="inv-piece-name">${p.nome}</p><p class="inv-piece-sub">${p.categoria}</p></div>
+          <span class="inv-piece-badge">${n} ${n===1?'look':'looks'}</span>
+        </div>`;
+      }).join('')
+    : '<p style="color:var(--text-soft);font-size:14px;padding:4px 0;">Nenhuma peça usada em look ainda.</p>';
+
+  // Nunca usadas
+  const unused = pieces.filter(function(p){return !lookCounts[p.id];});
+  document.getElementById('inv-unused').innerHTML = unused.length
+    ? unused.map(function(p) {
+        return `<div class="inv-piece-row" onclick="openPiece(${p.id})">
+          <img src="${p.img}" class="inv-piece-thumb" alt="${p.nome}">
+          <div class="inv-piece-info"><p class="inv-piece-name">${p.nome}</p><p class="inv-piece-sub">${p.categoria}</p></div>
+          <button onclick="event.stopPropagation();navigate('criar-look')" style="border:1.5px solid var(--sage);background:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--sage);cursor:pointer;white-space:nowrap;flex-shrink:0;">+ Look</button>
+        </div>`;
+      }).join('')
+    : '<p style="color:var(--text-soft);font-size:14px;padding:4px 0;">Todas as peças já foram usadas em looks! 🎉</p>';
 }
 
 // ===== SAVE PIECE =====
