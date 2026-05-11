@@ -1470,6 +1470,38 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 [data-theme=dark] #auth-screen .auth-tab.active{background:#261E1A}
 [data-theme=dark] #auth-screen .auth-btn-google{background:#1c1410;color:#F5EDE8;border-color:#4A3830}
 [data-theme=dark] #auth-screen .auth-check-row label{color:#F5EDE8}
+/* ===== MATERIAL MULTISELECT ===== */
+.multiselect-trigger {
+  border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 9px 12px; background: rgba(255,255,255,0.8);
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; min-height: 44px; gap: 6px;
+  user-select: none; transition: border-color 0.15s;
+}
+.multiselect-trigger.open { border-color: var(--sage); border-radius: 12px 12px 0 0; }
+.multiselect-tags { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.multiselect-placeholder { color: var(--muted); font-size: 14px; }
+.multiselect-tag {
+  background: var(--sage-light, #EAF0EC); color: var(--sage);
+  border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+}
+.multiselect-arrow { color: var(--text-2); font-size: 11px; flex-shrink: 0; }
+.multiselect-options {
+  border: 1.5px solid var(--sage); border-top: none;
+  border-radius: 0 0 12px 12px; padding: 10px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  background: var(--surface, #fff); max-height: 180px; overflow-y: auto;
+}
+.material-chip {
+  padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--border);
+  font-size: 12px; font-weight: 600; cursor: pointer; user-select: none;
+  background: var(--bg); color: var(--text-2); transition: all 0.12s;
+}
+.material-chip.selected { background: var(--sage-light, #EAF0EC); border-color: var(--sage); color: var(--sage); }
+[data-theme="dark"] .multiselect-trigger { background: #302420; border-color: #4A3830; }
+[data-theme="dark"] .multiselect-options { background: #261E1A; border-color: var(--sage); }
+[data-theme="dark"] .material-chip { background: #302420; border-color: #4A3830; color: var(--text-2); }
+[data-theme="dark"] .material-chip.selected { background: rgba(196,120,90,0.15); border-color: var(--sage); color: var(--sage); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
@@ -2035,6 +2067,35 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
           </select>
         </div>
         <div class="input-group">
+          <label>Material</label>
+          <div id="ai-materiais-wrap">
+            <div class="multiselect-trigger" id="ai-materiais-trigger" onclick="toggleMateriais()">
+              <div class="multiselect-tags" id="ai-materiais-tags"><span class="multiselect-placeholder">Selecione os materiais...</span></div>
+              <span class="multiselect-arrow" id="ai-materiais-arrow">▾</span>
+            </div>
+            <div class="multiselect-options" id="ai-materiais-options" style="display:none;">
+              <div class="material-chip" data-value="Algodão" onclick="toggleMaterial(this)">Algodão</div>
+              <div class="material-chip" data-value="Linho" onclick="toggleMaterial(this)">Linho</div>
+              <div class="material-chip" data-value="Viscose" onclick="toggleMaterial(this)">Viscose</div>
+              <div class="material-chip" data-value="Poliéster" onclick="toggleMaterial(this)">Poliéster</div>
+              <div class="material-chip" data-value="Elastano" onclick="toggleMaterial(this)">Elastano</div>
+              <div class="material-chip" data-value="Jeans" onclick="toggleMaterial(this)">Jeans</div>
+              <div class="material-chip" data-value="Sarja" onclick="toggleMaterial(this)">Sarja</div>
+              <div class="material-chip" data-value="Malha" onclick="toggleMaterial(this)">Malha</div>
+              <div class="material-chip" data-value="Tricot" onclick="toggleMaterial(this)">Tricot</div>
+              <div class="material-chip" data-value="Lã" onclick="toggleMaterial(this)">Lã</div>
+              <div class="material-chip" data-value="Couro" onclick="toggleMaterial(this)">Couro</div>
+              <div class="material-chip" data-value="Veludo" onclick="toggleMaterial(this)">Veludo</div>
+              <div class="material-chip" data-value="Seda" onclick="toggleMaterial(this)">Seda</div>
+              <div class="material-chip" data-value="Cetim" onclick="toggleMaterial(this)">Cetim</div>
+              <div class="material-chip" data-value="Renda" onclick="toggleMaterial(this)">Renda</div>
+              <div class="material-chip" data-value="Tule" onclick="toggleMaterial(this)">Tule</div>
+              <div class="material-chip" data-value="Nylon" onclick="toggleMaterial(this)">Nylon</div>
+              <div class="material-chip" data-value="Outros" onclick="toggleMaterial(this)">Outros</div>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
           <label>Notas</label>
           <textarea id="ai-notas" placeholder="Observações sobre a peça..."></textarea>
         </div>
@@ -2076,6 +2137,10 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
         <div style="background:var(--bg);border-radius:14px;padding:12px 14px;">
           <p style="font-size:11px;color:var(--text-2);font-weight:500;">Estação</p>
           <p id="detalhe-estacao" style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;"></p>
+        </div>
+        <div style="background:var(--bg);border-radius:14px;padding:12px 14px;grid-column:1/-1;">
+          <p style="font-size:11px;color:var(--text-2);font-weight:500;">Material</p>
+          <p id="detalhe-materiais" style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px;"></p>
         </div>
       </div>
       <div>
@@ -3128,6 +3193,7 @@ function openPiece(id) {
   document.getElementById('detalhe-loja').textContent = p.loja || 'Não informada';
   document.getElementById('detalhe-preco').textContent = p.preco ? 'R$ ' + p.preco.toFixed(2).replace('.', ',') : 'Não informado';
   document.getElementById('detalhe-estacao').textContent = p.estacao || 'Todas as estações';
+  document.getElementById('detalhe-materiais').textContent = (p.materiais && p.materiais.length) ? p.materiais.join(', ') : 'Não informado';
   // Fill "appears in looks" thumbnails
   const relatedLooks = looks.filter(l => l.pecas.includes(id));
   const l1 = document.getElementById('detalhe-look-1');
@@ -3140,6 +3206,24 @@ function openPiece(id) {
 // ===== ADD PIECE: CAMERA / GALLERY =====
 function openCamera()  { document.getElementById('input-camera').click(); }
 function openGallery() { document.getElementById('input-galeria').click(); }
+
+function toggleMateriais() {
+  const opts = document.getElementById('ai-materiais-options');
+  const trig = document.getElementById('ai-materiais-trigger');
+  const arrow = document.getElementById('ai-materiais-arrow');
+  if (!opts) return;
+  const open = opts.style.display !== 'none';
+  opts.style.display = open ? 'none' : 'flex';
+  if (trig) trig.classList.toggle('open', !open);
+  if (arrow) arrow.textContent = open ? '▾' : '▴';
+}
+
+function toggleMaterial(chip) {
+  chip.classList.toggle('selected');
+  const selected = Array.from(document.querySelectorAll('.material-chip.selected')).map(c => c.dataset.value);
+  const tags = document.getElementById('ai-materiais-tags');
+  if (tags) tags.innerHTML = selected.length ? selected.map(v => `<span class="multiselect-tag">${v}</span>`).join('') : '<span class="multiselect-placeholder">Selecione os materiais...</span>';
+}
 
 function processImage(inputEl) {
   const file = inputEl.files[0];
@@ -3662,6 +3746,7 @@ function savePiece() {
   const ocasiao = document.getElementById('ai-ocasiao') ? document.getElementById('ai-ocasiao').value : 'Casual';
   const dataCompra = document.getElementById('ai-data-compra') ? document.getElementById('ai-data-compra').value : '';
   const notas = ((document.getElementById('ai-notas') ? document.getElementById('ai-notas').value : '') || '').trim();
+  const materiais = Array.from(document.querySelectorAll('.material-chip.selected')).map(c => c.dataset.value);
   const estacoes = ['est-primavera','est-verao','est-outono','est-inverno']
     .map(id => document.getElementById(id))
     .filter(el => el && el.checked)
@@ -3674,12 +3759,12 @@ function savePiece() {
   const wasEditing = editingPieceId !== null;
   if (wasEditing) {
     const idx = pieces.findIndex(p => p.id === editingPieceId);
-    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, ocasiao, estacao, estacoes, loja, preco, dataCompra, notas, img };
+    if (idx !== -1) pieces[idx] = { ...pieces[idx], nome, categoria, cor, ocasiao, estacao, estacoes, loja, preco, dataCompra, notas, materiais, img };
     editingPieceId = null;
   } else {
     const newId = pieces.length > 0 ? Math.max(...pieces.map(p => p.id)) + 1 : 0;
     pieces.push({ id: newId, nome, categoria, cor, ocasiao, loja, preco, dataCompra, notas,
-      estacao, estacoes,
+      estacao, estacoes, materiais,
       adicionadoEm: new Date().toISOString(), img });
   }
   savePiecesToStorage();
@@ -3708,6 +3793,10 @@ function editPiece(id) {
   const ocasiaoEl = document.getElementById('ai-ocasiao'); if (ocasiaoEl) ocasiaoEl.value = p.ocasiao || 'Casual';
   const dataEl = document.getElementById('ai-data-compra'); if (dataEl) dataEl.value = p.dataCompra || '';
   const notasEl = document.getElementById('ai-notas'); if (notasEl) notasEl.value = p.notas || '';
+  const mats = p.materiais || [];
+  document.querySelectorAll('.material-chip').forEach(c => c.classList.toggle('selected', mats.includes(c.dataset.value)));
+  const matTags = document.getElementById('ai-materiais-tags');
+  if (matTags) matTags.innerHTML = mats.length ? mats.map(v => `<span class="multiselect-tag">${v}</span>`).join('') : '<span class="multiselect-placeholder">Selecione os materiais...</span>';
   ['est-primavera','est-verao','est-outono','est-inverno'].forEach(eid => {
     const el = document.getElementById(eid);
     if (el) el.checked = (p.estacoes || []).includes(el.value) || (!p.estacoes && el.value === p.estacao);
@@ -4151,6 +4240,12 @@ function resetAddScreen() {
   const ocasiaoEl = document.getElementById('ai-ocasiao'); if (ocasiaoEl) ocasiaoEl.value = 'Casual';
   const dataEl = document.getElementById('ai-data-compra'); if (dataEl) dataEl.value = '';
   const notasEl = document.getElementById('ai-notas'); if (notasEl) notasEl.value = '';
+  document.querySelectorAll('.material-chip').forEach(c => c.classList.remove('selected'));
+  const matTags = document.getElementById('ai-materiais-tags');
+  if (matTags) matTags.innerHTML = '<span class="multiselect-placeholder">Selecione os materiais...</span>';
+  const matOpts = document.getElementById('ai-materiais-options'); if (matOpts) matOpts.style.display = 'none';
+  const matTrig = document.getElementById('ai-materiais-trigger'); if (matTrig) { matTrig.classList.remove('open'); }
+  const matArrow = document.getElementById('ai-materiais-arrow'); if (matArrow) matArrow.textContent = '▾';
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4237,7 +4332,11 @@ const AUTH=(function(){
           const p=await r.json();
           const users=gu();let user=users.find(u=>u.email===p.email.toLowerCase());
           if(!user){user={email:p.email.toLowerCase(),nome:p.name||p.email,nick:sn(p.name||p.email),avatar:'✦',googleId:p.sub,salt:'',hash:'',createdAt:new Date().toISOString()};users.push(user);su(users)}
-          if(typeof GDRIVE!=='undefined'){GDRIVE._tok=resp.access_token;GDRIVE._tokExp=Date.now()+(resp.expires_in*1000)}
+          if(typeof GDRIVE!=='undefined'){
+            GDRIVE._tok=resp.access_token;GDRIVE._tokExp=Date.now()+(resp.expires_in*1000);GDRIVE._email=p.email.toLowerCase();
+            localStorage.setItem('vestiq_gdrive_token',GDRIVE._tok);localStorage.setItem('vestiq_gdrive_token_exp',String(GDRIVE._tokExp));localStorage.setItem('vestiq_gdrive_email',GDRIVE._email);
+            renderGDriveRow();if(GDRIVE._syncSilent)GDRIVE._syncSilent();
+          }
           if(typeof currentUser!=='undefined'){currentUser.nome=user.nome;currentUser.email=user.email}
           ss(user,true);this.hide();this._after(user);
         }catch{se('auth-login-error','Não foi possível obter os dados do Google.')}
