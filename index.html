@@ -1413,7 +1413,7 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
     <button class="topnav-link" id="nav-agenda" onclick="navigate('agenda')">Agenda</button>
     <button class="topnav-link" id="nav-perfil" onclick="navigate('perfil')">Perfil</button>
   </div>
-  <button class="topnav-avatar" onclick="navigate('perfil')" title="Perfil de Larissa">L</button>
+  <button class="topnav-avatar" onclick="navigate('perfil')" title="Perfil"></button>
 </nav>
 
 <div id="desktop-wrap">
@@ -1965,9 +1965,9 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
       <div class="perfil-col-left">
         <!-- Avatar -->
         <div style="display:flex;flex-direction:column;align-items:center;padding:10px 0 6px;">
-          <div class="profile-avatar">L</div>
-          <p id="perfil-nome-display" style="font-size:17px;font-weight:700;color:var(--text);">Larissa</p>
-          <p id="perfil-email-display" style="font-size:13px;color:var(--text-2);">larissadealmeidasantana@gmail.com</p>
+          <div class="profile-avatar"></div>
+          <p id="perfil-nome-display" style="font-size:17px;font-weight:700;color:var(--text);"></p>
+          <p id="perfil-email-display" style="font-size:13px;color:var(--text-2);"></p>
           <button class="btn-ghost" style="margin-top:6px;" onclick="editPerfil()">Editar perfil</button>
         </div>
         <!-- Stats summary -->
@@ -2698,6 +2698,10 @@ function updateProfileBody() {
   if (pb) pb.textContent = currentUser.busto;
   if (pc) pc.textContent = currentUser.cintura;
   if (pq) pq.textContent = currentUser.quadril;
+  const pa = document.querySelector('.profile-avatar');
+  if (pa && currentUser.nome) pa.textContent = currentUser.nome[0].toUpperCase();
+  const av = document.querySelector('.topnav-avatar');
+  if (av && currentUser.nome) av.textContent = currentUser.nome[0].toUpperCase();
 }
 
 // ===== NAVIGATION =====
