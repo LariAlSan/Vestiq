@@ -4415,7 +4415,12 @@ const GDRIVE = {
   _bundle() {
     return {
       meta: { lastUpdated: new Date().toISOString(), schemaVersion: 2 },
-      pieces: pieces.map(function(pc) { var c = Object.assign({}, pc); delete c.img; return c; }),
+      pieces: pieces.map(function(pc) {
+        var c = Object.assign({}, pc);
+        const sep = localStorage.getItem('vestiq_img_' + pc.id);
+        if (sep) c.img = sep;
+        return c;
+      }),
       looks: looks,
       agendaEntries: agendaEntries,
       viagens: viagens,
@@ -4468,7 +4473,15 @@ const GDRIVE = {
       const dt = new Date(driveData.meta?.lastUpdated || 0);
       const lt = new Date(localStorage.getItem('vestiq_last_modified') || 0);
       if (dt > lt) {
-        if (Array.isArray(driveData.pieces))        { pieces = driveData.pieces.map(pc => ({ ...pc, img: getFashionImg(pc.categoria, pc.cor) })); savePiecesToStorage(); }
+        if (Array.isArray(driveData.pieces))        {
+          pieces = driveData.pieces.map(pc => {
+            const savedImg = localStorage.getItem('vestiq_img_' + pc.id);
+            if (savedImg) return { ...pc, img: savedImg };
+            if (pc.img && !pc.img.startsWith('data:image/svg+xml')) return { ...pc };
+            return { ...pc, img: getFashionImg(pc.categoria, pc.cor) };
+          });
+          savePiecesToStorage();
+        }
         if (Array.isArray(driveData.looks))         { looks = driveData.looks; saveLooksToStorage(); }
         if (Array.isArray(driveData.agendaEntries)) { agendaEntries = driveData.agendaEntries; saveAgendaToStorage(); }
         if (Array.isArray(driveData.viagens))       { viagens = driveData.viagens; saveViagensToStorage(); }
