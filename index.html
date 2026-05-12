@@ -2741,6 +2741,12 @@ input[type="date"] { font-size: clamp(12px, 3vw, 14px); }
 </div><!-- end #desktop-wrap -->
 
 <script>
+function sanitize(str) {
+  return String(str == null ? '' : str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 let onbReturnScreen = 'dashboard';
 
 // ===== USER DATA =====
@@ -3000,7 +3006,7 @@ function lookCardHTML(look, featured, deletable) {
   if (featured === undefined) featured = false;
   const imgs = look.pecas.slice(0,4).map(id => {
     const p = pieces.find(x => x.id === id);
-    return p ? `<img src="${p.img}" alt="${p.nome}" title="${p.nome}">` : '';
+    return p ? `<img src="${p.img}" alt="${sanitize(p.nome)}" title="${sanitize(p.nome)}">` : '';
   }).join('');
   const deleteBtn = deletable
     ? `<button onclick="event.stopPropagation();deleteLook(${look.id})" title="Excluir look"
@@ -3011,12 +3017,12 @@ function lookCardHTML(look, featured, deletable) {
       ${deleteBtn}
       <div class="look-card-grid">
         ${imgs}
-        <span class="look-card-ocasiao">${look.ocasiao || 'Casual'}</span>
+        <span class="look-card-ocasiao">${sanitize(look.ocasiao || 'Casual')}</span>
       </div>
       <div class="look-card-info">
         <div>
-          <h3>${look.nome}</h3>
-          <span class="look-card-meta">${look.pecas.length} peças · ${look.estacao || 'Atemporal'}</span>
+          <h3>${sanitize(look.nome)}</h3>
+          <span class="look-card-meta">${look.pecas.length} peças · ${sanitize(look.estacao || 'Atemporal')}</span>
         </div>
       </div>
     </div>`;
@@ -3125,10 +3131,10 @@ function renderSuggestCards() {
     if (!pecaIds.length) pecaIds = pieces.slice(0, 4).map(p => p.id);
     const imgs = pecaIds.slice(0,4).map(id => {
       const p = pieces.find(x => x.id === id);
-      return p ? `<img src="${p.img}" alt="${p.nome}">` : '';
+      return p ? `<img src="${p.img}" alt="${sanitize(p.nome)}">` : '';
     }).join('');
     const cardPecas = pecaIds.map(id => pieces.find(p => p.id === id)).filter(Boolean);
-    const desc = cardPecas.map(p => p.nome).join(' + ') || s.desc;
+    const desc = cardPecas.map(p => sanitize(p.nome)).join(' + ') || s.desc;
     return `
       <div class="suggest-card">
         <div class="suggest-card-grid">${imgs}</div>
@@ -3273,10 +3279,10 @@ function renderPiecesGrid() {
   }
   grid.innerHTML = filtered.map(p => `
     <div class="piece-card" onclick="openPiece(${p.id})">
-      <img src="${p.img}" alt="${p.nome}" loading="lazy">
+      <img src="${p.img}" alt="${sanitize(p.nome)}" loading="lazy">
       <div class="piece-card-info">
-        <h3>${p.nome}</h3>
-        <span class="piece-card-cat">${p.categoria}</span>
+        <h3>${sanitize(p.nome)}</h3>
+        <span class="piece-card-cat">${sanitize(p.categoria)}</span>
       </div>
     </div>
   `).join('');
@@ -3354,6 +3360,11 @@ function toggleMaterial(chip) {
 function processImage(inputEl) {
   const file = inputEl.files[0];
   if (!file) return;
+  if (file.size > 15 * 1024 * 1024) {
+    showToast('Imagem muito grande (máx. 15 MB). Escolha outra foto.', 'err');
+    inputEl.value = '';
+    return;
+  }
   inputEl.value = '';
   const reader = new FileReader();
   reader.onload = function(e) {
@@ -3425,8 +3436,8 @@ function openSlotModal(category, slotId) {
 
   grid.innerHTML = available.map(p => `
     <div onclick="selectSlotPiece(${p.id})" style="cursor:pointer;text-align:center;">
-      <img src="${p.img}" alt="${p.nome}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:2.5px solid transparent;transition:border-color 0.15s;">
-      <p style="font-size:11px;font-weight:600;color:var(--text);margin-top:5px;line-height:1.3;">${p.nome}</p>
+      <img src="${p.img}" alt="${sanitize(p.nome)}" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:2.5px solid transparent;transition:border-color 0.15s;">
+      <p style="font-size:11px;font-weight:600;color:var(--text);margin-top:5px;line-height:1.3;">${sanitize(p.nome)}</p>
     </div>
   `).join('');
 
@@ -3473,8 +3484,8 @@ function closeSlotModal(event) {
 
 
 // ===== AGENDA — STORAGE =====
-function saveAgendaToStorage()  { try { localStorage.setItem('vestiq_agenda',  JSON.stringify(agendaEntries)); } catch(e) { console.warn('[Vestiq] saveAgenda:', e); } GDRIVE.autoSave(); }
-function saveViagensToStorage() { try { localStorage.setItem('vestiq_viagens', JSON.stringify(viagens)); }      catch(e) { console.warn('[Vestiq] saveViagens:', e); } GDRIVE.autoSave(); }
+function saveAgendaToStorage()  { try { localStorage.setItem('vestiq_agenda',  JSON.stringify(agendaEntries)); } catch(e) { showToast('Armazenamento cheio — agenda pode não ter sido salva.', 'err'); console.warn('[Vestiq] saveAgenda:', e); } GDRIVE.autoSave(); }
+function saveViagensToStorage() { try { localStorage.setItem('vestiq_viagens', JSON.stringify(viagens)); }      catch(e) { showToast('Armazenamento cheio — viagens podem não ter sido salvas.', 'err'); console.warn('[Vestiq] saveViagens:', e); } GDRIVE.autoSave(); }
 
 // ===== AGENDA — HELPERS =====
 function dateToStr(d) {
@@ -3596,8 +3607,8 @@ function renderDayEvents(dateStr) {
       <span class="event-time-badge">${ev.hora}</span>
       ${thumb}
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ev.evento}</div>
-        ${look ? `<div style="font-size:11px;color:var(--text-soft);margin-top:1px;">${look.nome}</div>` : ''}
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sanitize(ev.evento)}</div>
+        ${look ? `<div style="font-size:11px;color:var(--text-soft);margin-top:1px;">${sanitize(look.nome)}</div>` : ''}
       </div>
       <button class="event-delete-btn" onclick="openEditEventModal(${ev.id})" title="Editar" style="margin-right:2px;">✎</button>
       <button class="event-delete-btn" onclick="deleteAgendaEntry(${ev.id})" title="Remover">×</button>
@@ -3623,7 +3634,7 @@ function openAddEventModal(dateStr) {
     const imgs = l.pecas.slice(0,4).map(pid => { const p = pieces.find(x=>x.id===pid); return p ? `<img src="${p.img}" alt="">` : ''; }).join('');
     return `<div class="agenda-look-opt" data-lookid="${l.id}" onclick="selectAgendaLook(this, ${l.id})">
       <div class="agenda-look-opt-grid">${imgs}</div>
-      <div class="agenda-look-opt-name">${l.nome}</div>
+      <div class="agenda-look-opt-name">${sanitize(l.nome)}</div>
     </div>`;
   }).join('');
   modal.classList.add('open');
@@ -3692,8 +3703,8 @@ function renderViagens() {
     return `<div class="viagem-card" onclick="openViagemDetalhe(${v.id})">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
         <div>
-          <div style="font-size:16px;font-weight:700;color:var(--text);">${v.nome}</div>
-          <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${v.destino ? v.destino+' · ' : ''}${formatDateRange(v.dataIda, v.dataVolta)}</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text);">${sanitize(v.nome)}</div>
+          <div style="font-size:12px;color:var(--text-soft);margin-top:3px;">${v.destino ? sanitize(v.destino)+' · ' : ''}${formatDateRange(v.dataIda, v.dataVolta)}</div>
         </div>
         <div style="font-size:11px;font-weight:700;color:var(--plum);white-space:nowrap;">${v.looks.length} look${v.looks.length !== 1 ? 's' : ''}</div>
       </div>
@@ -3770,8 +3781,8 @@ function openAddLookToMala() {
       <div style="border-radius:16px;overflow:hidden;border:1.5px solid var(--border);">
         <div style="display:grid;grid-template-columns:1fr 1fr;height:80px;">${imgs}</div>
         <div style="padding:8px 10px;">
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${l.nome}</div>
-          <div style="font-size:11px;color:var(--text-soft);">${l.ocasiao}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${sanitize(l.nome)}</div>
+          <div style="font-size:11px;color:var(--text-soft);">${sanitize(l.ocasiao)}</div>
         </div>
       </div>
       ${added ? '<div style="text-align:center;font-size:10px;color:var(--muted);margin-top:2px;">já na mala</div>' : ''}
@@ -3849,14 +3860,14 @@ function renderDashboardComposition() {
     <div style="grid-row:1/3;border-radius:22px;overflow:hidden;box-shadow:0 12px 40px rgba(47,47,51,0.14);position:relative;cursor:pointer;" onclick="openPiece(${first.id})">
       <img src="${first.img}" style="width:100%;height:100%;object-fit:cover;display:block;">
       <div style="position:absolute;bottom:0;left:0;right:0;padding:18px 20px;background:linear-gradient(transparent,rgba(36,34,40,0.72));">
-        <p style="font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.7px;margin:0;">${first.nome}</p>
+        <p style="font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.7px;margin:0;">${sanitize(first.nome)}</p>
       </div>
     </div>
     ${rest.map(p => `
       <div style="border-radius:16px;overflow:hidden;box-shadow:0 6px 22px rgba(47,47,51,0.10);position:relative;cursor:pointer;" onclick="openPiece(${p.id})">
         <img src="${p.img}" style="width:100%;height:100%;object-fit:cover;display:block;">
         <div style="position:absolute;bottom:0;left:0;right:0;padding:11px 13px;background:linear-gradient(transparent,rgba(36,34,40,0.66));">
-          <p style="font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin:0;">${p.nome}</p>
+          <p style="font-size:10px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.5px;margin:0;">${sanitize(p.nome)}</p>
         </div>
       </div>`).join('')}
   `;
@@ -3976,8 +3987,8 @@ function renderInventario() {
         const n = lookCounts[p.id];
         return `<div class="inv-piece-row" onclick="openPiece(${p.id})">
           <span class="inv-piece-rank">${i+1}</span>
-          <img src="${p.img}" class="inv-piece-thumb" alt="${p.nome}">
-          <div class="inv-piece-info"><p class="inv-piece-name">${p.nome}</p><p class="inv-piece-sub">${p.categoria}</p></div>
+          <img src="${p.img}" class="inv-piece-thumb" alt="${sanitize(p.nome)}">
+          <div class="inv-piece-info"><p class="inv-piece-name">${sanitize(p.nome)}</p><p class="inv-piece-sub">${sanitize(p.categoria)}</p></div>
           <span class="inv-piece-badge">${n} ${n===1?'look':'looks'}</span>
         </div>`;
       }).join('')
@@ -3988,8 +3999,8 @@ function renderInventario() {
   document.getElementById('inv-unused').innerHTML = unused.length
     ? unused.map(function(p) {
         return `<div class="inv-piece-row" onclick="openPiece(${p.id})">
-          <img src="${p.img}" class="inv-piece-thumb" alt="${p.nome}">
-          <div class="inv-piece-info"><p class="inv-piece-name">${p.nome}</p><p class="inv-piece-sub">${p.categoria}</p></div>
+          <img src="${p.img}" class="inv-piece-thumb" alt="${sanitize(p.nome)}">
+          <div class="inv-piece-info"><p class="inv-piece-name">${sanitize(p.nome)}</p><p class="inv-piece-sub">${sanitize(p.categoria)}</p></div>
           <button onclick="event.stopPropagation();navigate('criar-look')" style="border:1.5px solid var(--sage);background:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--sage);cursor:pointer;white-space:nowrap;flex-shrink:0;">+ Look</button>
         </div>`;
       }).join('')
@@ -4065,7 +4076,11 @@ function editPiece(id) {
 
 // ===== ARCHIVE PIECE =====
 function archivePiece(id) {
-  if (!confirm('Arquivar esta peça? Ela não aparecerá mais no armário.')) return;
+  const affectedLooks = looks.filter(function(l) { return l.pecas.includes(id); });
+  const msg = affectedLooks.length > 0
+    ? `Arquivar esta peça? Ela aparece em ${affectedLooks.length} look${affectedLooks.length !== 1 ? 's' : ''}. Os looks serão mantidos com o slot vazio.`
+    : 'Arquivar esta peça? Ela não aparecerá mais no armário.';
+  if (!confirm(msg)) return;
   const idx = pieces.findIndex(p => p.id === id);
   if (idx !== -1) {
     const deletedId = pieces[idx].id;
@@ -4423,11 +4438,17 @@ function savePiecesToStorage() {
   GDRIVE.autoSave();
 }
 function saveLooksToStorage() {
-  try { localStorage.setItem('vestiq_looks', JSON.stringify(looks)); } catch(e) { console.warn('[Vestiq] saveLooks:', e); }
+  try { localStorage.setItem('vestiq_looks', JSON.stringify(looks)); } catch(e) {
+    showToast('Armazenamento cheio — looks podem não ter sido salvos.', 'err');
+    console.warn('[Vestiq] saveLooks:', e);
+  }
   GDRIVE.autoSave();
 }
 function saveUserToStorage() {
-  try { localStorage.setItem('vestiq_user', JSON.stringify(currentUser)); } catch(e) { console.warn('[Vestiq] saveUser:', e); }
+  try { localStorage.setItem('vestiq_user', JSON.stringify(currentUser)); } catch(e) {
+    showToast('Armazenamento cheio — perfil pode não ter sido salvo.', 'err');
+    console.warn('[Vestiq] saveUser:', e);
+  }
   GDRIVE.autoSave();
 }
 function loadFromStorage() {
